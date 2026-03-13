@@ -78,9 +78,9 @@ See `docs/api-documentation.md` for the full API reference.
 
 ## Pricing
 
-- 60-minute walk: **$20.00**
-- Additional dog: **+$5.00**
-- Platform fee: **20%** (walkers keep 80%)
+- 60-minute walk: **$40.00**
+- Additional dog: **+$10.00**
+- Platform fee: **50%** (walkers keep 50%)
 - Tips: **100%** to walker
 
 ## Project Structure
