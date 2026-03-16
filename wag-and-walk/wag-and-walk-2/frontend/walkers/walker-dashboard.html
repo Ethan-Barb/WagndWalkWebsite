@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Walker Dashboard — Wag &amp; Walk</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="logo">🐾 Wag &amp; Walk</a>
+    <div class="nav-links">
+      <span id="nav-greeting" style="color:var(--soil);font-weight:500"></span>
+      <a href="#" onclick="logout()" style="color:var(--danger)">Log out</a>
+    </div>
+  </div>
+</nav>
+
+<div class="dash-layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="logo">Walker Portal</div>
+      <div class="logo-sub">Your Walking Dashboard</div>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="sidebar-item active" href="#" data-section="overview"><span class="si-icon">🏠</span>Overview</a>
+      <a class="sidebar-item" href="#" data-section="requests"><span class="si-icon">📬</span>Walk Requests</a>
+      <a class="sidebar-item" href="#" data-section="schedule"><span class="si-icon">📅</span>My Schedule</a>
+      <a class="sidebar-item" href="#" data-section="earnings"><span class="si-icon">💰</span>Earnings</a>
+      <a class="sidebar-item" href="#" data-section="availability"><span class="si-icon">⏰</span>Availability</a>
+      <a class="sidebar-item" href="#" data-section="profile"><span class="si-icon">👤</span>My Profile</a>
+    </nav>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- ── Overview ── -->
+    <div id="sec-overview" class="sec">
+      <div class="page-hd">
+        <h1 id="welcome-h1">Dashboard 👋</h1>
+        <p>Manage your walks and track your earnings.</p>
+      </div>
+      <div class="stat-row">
+        <div class="stat-card"><div class="sc-icon">💰</div><div class="sc-label">Total Earnings</div><div class="sc-value" id="sc-earnings">—</div><div class="sc-sub">80% of each booking</div></div>
+        <div class="stat-card"><div class="sc-icon">🎁</div><div class="sc-label">Total Tips</div><div class="sc-value" id="sc-tips">—</div><div class="sc-sub">100% yours</div></div>
+        <div class="stat-card"><div class="sc-icon">🦮</div><div class="sc-label">Total Walks</div><div class="sc-value" id="sc-walks">—</div></div>
+        <div class="stat-card"><div class="sc-icon">⭐</div><div class="sc-label">Avg Rating</div><div class="sc-value" id="sc-rating">—</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-hd"><h3 class="card-title">Upcoming Walks</h3><a class="btn btn-ghost btn-sm" href="#" data-section="schedule">View all</a></div>
+          <div id="ov-upcoming"><div class="spinner"></div></div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><h3 class="card-title">Pending Requests</h3><a class="btn btn-ghost btn-sm" href="#" data-section="requests">View all</a></div>
+          <div id="ov-pending"><div class="spinner"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Walk Requests ── -->
+    <div id="sec-requests" class="sec hidden">
+      <div class="page-hd"><h1>Walk Requests</h1><p>Review and accept or decline incoming requests.</p></div>
+      <div id="requests-list"><div class="spinner"></div></div>
+    </div>
+
+    <!-- ── Schedule ── -->
+    <div id="sec-schedule" class="sec hidden">
+      <div class="page-hd"><h1>My Schedule</h1><p>All accepted and upcoming walks.</p></div>
+      <div class="card">
+        <div class="card-hd" style="flex-wrap:wrap;gap:8px">
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-ghost btn-sm" onclick="loadSchedule('accepted')">Accepted</button>
+            <button class="btn btn-ghost btn-sm" onclick="loadSchedule('in_progress')">In Progress</button>
+            <button class="btn btn-ghost btn-sm" onclick="loadSchedule('')">All</button>
+          </div>
+        </div>
+        <div id="schedule-list"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <!-- ── Earnings ── -->
+    <div id="sec-earnings" class="sec hidden">
+      <div class="page-hd"><h1>Earnings</h1><p>Your monthly income breakdown.</p></div>
+
+      <!-- Month selector -->
+      <div style="display:flex;gap:12px;align-items:center;margin-bottom:20px">
+        <select id="earn-month" class="btn btn-secondary btn-sm" style="padding:8px 12px" onchange="loadEarnings()">
+          <option value="1">January</option><option value="2">February</option>
+          <option value="3">March</option><option value="4">April</option>
+          <option value="5">May</option><option value="6">June</option>
+          <option value="7">July</option><option value="8">August</option>
+          <option value="9">September</option><option value="10">October</option>
+          <option value="11">November</option><option value="12">December</option>
+        </select>
+        <select id="earn-year" class="btn btn-secondary btn-sm" style="padding:8px 12px" onchange="loadEarnings()"></select>
+      </div>
+
+      <div class="stat-row mb-3">
+        <div class="stat-card"><div class="sc-label">Walk Earnings</div><div class="sc-value" id="earn-walks">—</div></div>
+        <div class="stat-card"><div class="sc-label">Tips Received</div><div class="sc-value" id="earn-tips">—</div></div>
+        <div class="stat-card"><div class="sc-label">Total Income</div><div class="sc-value" id="earn-total">—</div></div>
+        <div class="stat-card"><div class="sc-label">Walks This Month</div><div class="sc-value" id="earn-count">—</div></div>
+      </div>
+
+      <div class="card">
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Date</th><th>Client</th><th>Dog(s)</th><th>Walk Fee (80%)</th><th>Tip</th><th>Total</th></tr></thead>
+            <tbody id="earn-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card mt-3">
+        <div class="card-hd"><h3 class="card-title">💳 Stripe Payouts</h3></div>
+        <p style="margin-bottom:14px">Connect your Stripe account to receive automatic payouts after each walk. Earnings transfer within 2 business days.</p>
+        <button class="btn btn-secondary" onclick="connectStripe()">🔗 Connect Stripe Account</button>
+      </div>
+    </div>
+
+    <!-- ── Availability ── -->
+    <div id="sec-availability" class="sec hidden">
+      <div class="page-hd"><h1>Availability</h1><p>Set the days and hours you're available to walk dogs.</p></div>
+      <div class="card">
+        <div class="form-group" style="margin-bottom:24px">
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:1rem">
+            <input type="checkbox" id="is-available" onchange="toggleAvailable()" style="width:18px;height:18px">
+            <span style="font-weight:600">I'm currently accepting new walk requests</span>
+          </label>
+        </div>
+
+        <h3 style="margin-bottom:16px;font-size:1rem">Weekly Schedule</h3>
+        <div id="avail-editor"><div class="spinner"></div></div>
+
+        <div id="avail-alert" class="mt-2"></div>
+        <button class="btn btn-primary mt-3" onclick="saveAvailability()">Save Availability</button>
+      </div>
+    </div>
+
+    <!-- ── Profile ── -->
+    <div id="sec-profile" class="sec hidden">
+      <div class="page-hd"><h1>My Profile</h1><p>Update your public walker profile shown to clients.</p></div>
+      <div class="card mb-3">
+        <div class="form-group"><label>Bio <span style="color:var(--muted);font-weight:400">(shown to clients)</span></label>
+          <textarea id="p-bio" rows="4" placeholder="Tell clients about yourself and why you love dogs…"></textarea></div>
+        <div class="form-group"><label>Dog-walking Experience</label>
+          <textarea id="p-exp" rows="3" placeholder="Describe your background, certifications, breeds you've worked with…"></textarea></div>
+        <div class="form-row">
+          <div class="form-group"><label>Age</label><input type="number" id="p-age" min="14" max="99" placeholder="18"></div>
+          <div class="form-group"><label>Service Radius (miles)</label><input type="number" id="p-radius" min="1" max="20" placeholder="5"></div>
+        </div>
+        <div id="profile-alert"></div>
+        <button class="btn btn-primary" onclick="saveProfile()">Update Profile</button>
+      </div>
+
+      <div class="card">
+        <div class="card-hd"><h3 class="card-title">Recent Reviews</h3></div>
+        <div id="my-reviews"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="/js/auth.js"></script>
+<script>
+/* ── Init ─────────────────────────────────── */
+const _user = requireAuth(['walker']);
+if (_user) {
+  setGreeting('nav-greeting');
+  document.getElementById('welcome-h1').textContent = `Welcome back, ${_user.firstName}! 👋`;
+}
+
+/* ── Section nav ──────────────────────────── */
+document.querySelectorAll('.sidebar-item, [data-section]').forEach(el => {
+  el.addEventListener('click', e => {
+    e.preventDefault();
+    const sec = el.dataset.section;
+    if (!sec) return;
+    document.querySelectorAll('.sec').forEach(s => s.classList.add('hidden'));
+    document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
+    document.getElementById(`sec-${sec}`)?.classList.remove('hidden');
+    document.querySelector(`.sidebar-item[data-section="${sec}"]`)?.classList.add('active');
+    const loaders = {
+      overview:     loadOverview,
+      requests:     loadRequests,
+      schedule:     () => loadSchedule('accepted'),
+      earnings:     loadEarnings,
+      availability: loadAvailability,
+      profile:      loadProfile,
+    };
+    loaders[sec]?.();
+  });
+});
+
+/* ── Overview ─────────────────────────────── */
+async function loadOverview() {
+  try {
+    const d = await api('/walkers/dashboard');
+    const wp = d.walker.walkerProfile || {};
+    document.getElementById('sc-earnings').textContent = fmt.money(wp.totalEarnings || 0);
+    document.getElementById('sc-tips').textContent     = fmt.money(wp.totalTips     || 0);
+    document.getElementById('sc-walks').textContent    = wp.totalWalks   || 0;
+    document.getElementById('sc-rating').textContent   = fmt.rating(wp.averageRating);
+
+    renderUpcomingWalker('ov-upcoming', d.upcomingWalks.filter(w => w.status === 'accepted'));
+    renderPendingList('ov-pending', d.upcomingWalks.filter(w => w.status === 'pending'));
+  } catch(e) { console.error(e); }
+}
+
+function renderUpcomingWalker(id, list) {
+  const el = document.getElementById(id);
+  if (!list.length) { el.innerHTML = '<p class="empty">No upcoming walks.</p>'; return; }
+  el.innerHTML = list.map(b => `
+    <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--linen)">
+      <div style="font-size:1.4rem">🐕</div>
+      <div style="flex:1">
+        <div style="font-weight:600">${b.client?.firstName} ${b.client?.lastName}</div>
+        <div style="font-size:.8rem;color:var(--muted)">${fmt.date(b.scheduledDate)} · ${b.startTime} · ${b.dogs?.map(d=>d.name).join(', ')}</div>
+      </div>
+      ${statusBadge(b.status)}
+    </div>`).join('');
+}
+
+function renderPendingList(id, list) {
+  const el = document.getElementById(id);
+  if (!list.length) { el.innerHTML = '<p class="empty">No pending requests.</p>'; return; }
+  el.innerHTML = list.map(b => `
+    <div style="padding:11px 0;border-bottom:1px solid var(--linen)">
+      <div style="font-weight:600">${b.client?.firstName} ${b.client?.lastName}</div>
+      <div style="font-size:.8rem;color:var(--muted);margin-bottom:8px">${fmt.date(b.scheduledDate)} · ${b.startTime} · ${fmt.money(b.totalPrice * .8)} payout</div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-primary btn-sm" onclick="acceptBooking('${b._id}')">✓ Accept</button>
+        <button class="btn btn-danger btn-sm" onclick="declineBooking('${b._id}')">✗ Decline</button>
+      </div>
+    </div>`).join('');
+}
+
+/* ── Requests ─────────────────────────────── */
+async function loadRequests() {
+  const el = document.getElementById('requests-list');
+  el.innerHTML = '<div class="spinner"></div>';
+  try {
+    const d = await api('/bookings?status=pending');
+    if (!d.bookings.length) {
+      el.innerHTML = '<div class="card"><p class="empty">No pending walk requests right now. Check back soon!</p></div>';
+      return;
+    }
+    el.innerHTML = d.bookings.map(b => `
+      <div class="card mb-2">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:14px">
+          <div>
+            <div style="font-family:var(--font-display);font-size:1.1rem;font-weight:700;margin-bottom:6px">
+              ${b.client?.firstName} ${b.client?.lastName}
+            </div>
+            <div style="display:flex;flex-direction:column;gap:3px">
+              <div style="font-size:.875rem;color:var(--muted)">📅 ${fmt.dateL(b.scheduledDate)}</div>
+              <div style="font-size:.875rem;color:var(--muted)">⏰ ${b.startTime} – ${b.endTime}</div>
+              <div style="font-size:.875rem;color:var(--muted)">📍 ${b.pickupAddress?.street}, Naperville</div>
+              <div style="font-size:.875rem;color:var(--muted)">🐕 ${b.dogs?.map(d=>d.name+' ('+d.breed+')').join(', ')}</div>
+              ${b.specialInstructions ? `<div style="margin-top:8px;font-size:.82rem;background:var(--cream-2);padding:8px 12px;border-radius:8px;color:var(--soil)">"${b.specialInstructions}"</div>` : ''}
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-family:var(--font-display);font-size:1.6rem;color:var(--amber);font-weight:900">${fmt.money(b.totalPrice * .8)}</div>
+            <div style="font-size:.75rem;color:var(--muted);margin-bottom:12px">your payout</div>
+            <div style="display:flex;gap:6px;justify-content:flex-end">
+              <button class="btn btn-primary btn-sm" onclick="acceptBooking('${b._id}')">✓ Accept</button>
+              <button class="btn btn-danger btn-sm"  onclick="declineBooking('${b._id}')">✗ Decline</button>
+            </div>
+          </div>
+        </div>
+      </div>`).join('');
+  } catch(e) { el.innerHTML = `<p class="empty" style="color:var(--danger)">${e.message}</p>`; }
+}
+
+async function acceptBooking(id) {
+  try {
+    await api(`/bookings/${id}/accept`, { method: 'PATCH' });
+    loadRequests();
+    loadOverview();
+  } catch(e) { alert(e.message); }
+}
+
+async function declineBooking(id) {
+  const reason = prompt('Reason for declining (optional):') || '';
+  try {
+    await api(`/bookings/${id}/decline`, { method: 'PATCH', body: JSON.stringify({ reason }) });
+    loadRequests();
+  } catch(e) { alert(e.message); }
+}
+
+/* ── Schedule ─────────────────────────────── */
+async function loadSchedule(status = 'accepted') {
+  const el = document.getElementById('schedule-list');
+  el.innerHTML = '<div class="spinner"></div>';
+  try {
+    const d = await api(`/bookings${status ? '?status='+status : ''}`);
+    if (!d.bookings.length) { el.innerHTML = '<p class="empty">No walks found.</p>'; return; }
+    el.innerHTML = `<div class="tbl-wrap"><table>
+      <thead><tr><th>Date</th><th>Time</th><th>Client</th><th>Dog(s)</th><th>Address</th><th>Payout</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>${d.bookings.map(b => `<tr>
+        <td>${fmt.date(b.scheduledDate)}</td>
+        <td>${b.startTime}–${b.endTime}</td>
+        <td><div style="font-weight:600">${b.client?.firstName} ${b.client?.lastName}</div><div style="font-size:.78rem;color:var(--muted)">${b.client?.phone||''}</div></td>
+        <td>${b.dogs?.map(d=>d.name).join(', ')}</td>
+        <td style="font-size:.82rem">${b.pickupAddress?.street}</td>
+        <td style="font-weight:700;color:var(--amber)">${fmt.money(b.totalPrice * .8)}</td>
+        <td>${statusBadge(b.status)}</td>
+        <td>${b.status==='accepted'
+          ? `<button class="btn btn-primary btn-sm" onclick="completeWalk('${b._id}')">✓ Complete</button>`
+          : ''}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>`;
+  } catch(e) { el.innerHTML = `<p class="empty" style="color:var(--danger)">${e.message}</p>`; }
+}
+
+async function completeWalk(id) {
+  if (!confirm('Mark this walk as completed? The client will be notified and payment will be processed.')) return;
+  try {
+    await api(`/bookings/${id}/complete`, { method: 'PATCH' });
+    loadSchedule();
+    loadOverview();
+    alert('✅ Walk marked complete! Payment will be transferred to your account.');
+  } catch(e) { alert(e.message); }
+}
+
+/* ── Earnings ─────────────────────────────── */
+function initEarnSelects() {
+  const now  = new Date();
+  const mSel = document.getElementById('earn-month');
+  const ySel = document.getElementById('earn-year');
+  if (!mSel || !ySel) return;
+  mSel.value = now.getMonth() + 1;
+  for (let y = now.getFullYear(); y >= now.getFullYear() - 2; y--) {
+    const opt = document.createElement('option');
+    opt.value = y; opt.textContent = y;
+    ySel.appendChild(opt);
+  }
+}
+
+async function loadEarnings() {
+  const month = document.getElementById('earn-month')?.value || new Date().getMonth() + 1;
+  const year  = document.getElementById('earn-year')?.value  || new Date().getFullYear();
+  const tbody = document.getElementById('earn-tbody');
+  try {
+    const d = await api(`/walkers/earnings?month=${month}&year=${year}`);
+    document.getElementById('earn-walks').textContent = fmt.money(d.totals.earnings);
+    document.getElementById('earn-tips').textContent  = fmt.money(d.totals.tips);
+    document.getElementById('earn-total').textContent = fmt.money(d.totals.earnings + d.totals.tips);
+    document.getElementById('earn-count').textContent = d.totals.walks;
+
+    tbody.innerHTML = d.earnings.map(b => {
+      const walkFee = b.totalPrice * .8;
+      return `<tr>
+        <td>${fmt.date(b.completedAt || b.scheduledDate)}</td>
+        <td>${b.client?.firstName} ${b.client?.lastName}</td>
+        <td>${b.dogs?.map(d=>d.name).join(', ')}</td>
+        <td style="color:var(--success);font-weight:600">${fmt.money(walkFee)}</td>
+        <td style="color:var(--amber);font-weight:600">${b.tipAmount ? fmt.money(b.tipAmount) : '—'}</td>
+        <td style="font-weight:700">${fmt.money(walkFee + b.tipAmount)}</td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="6" class="empty">No completed walks this month.</td></tr>';
+  } catch(e) { console.error(e); }
+}
+
+async function connectStripe() {
+  try {
+    const d = await api('/walkers/stripe-connect', { method: 'POST' });
+    window.open(d.url, '_blank');
+  } catch(e) { alert(e.message); }
+}
+
+/* ── Availability ─────────────────────────── */
+async function loadAvailability() {
+  const el = document.getElementById('avail-editor');
+  try {
+    const d  = await api('/auth/me');
+    const wp = d.user.walkerProfile || {};
+    document.getElementById('is-available').checked = wp.isAvailable ?? true;
+
+    el.innerHTML = DAYS.map((day, i) => {
+      const slot = (wp.availability || []).find(a => a.dayOfWeek === i);
+      return `
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--linen)">
+          <label style="display:flex;align-items:center;gap:8px;min-width:100px;cursor:pointer">
+            <input type="checkbox" class="avail-cb" data-day="${i}" ${slot?'checked':''}>
+            <span style="font-weight:600">${day}</span>
+          </label>
+          <input type="time" class="avail-start" data-day="${i}" value="${slot?.startTime||'09:00'}"
+            style="padding:6px 10px;border:1.5px solid var(--linen);border-radius:6px;font-family:var(--font-body)">
+          <span style="color:var(--muted)">to</span>
+          <input type="time" class="avail-end" data-day="${i}" value="${slot?.endTime||'17:00'}"
+            style="padding:6px 10px;border:1.5px solid var(--linen);border-radius:6px;font-family:var(--font-body)">
+        </div>`;
+    }).join('');
+  } catch(e) { el.innerHTML = `<p style="color:var(--danger)">${e.message}</p>`; }
+}
+
+async function toggleAvailable() {
+  const isAvailable = document.getElementById('is-available').checked;
+  try { await api('/walkers/profile', { method: 'PATCH', body: JSON.stringify({ isAvailable }) }); }
+  catch(e) { console.error(e); }
+}
+
+async function saveAvailability() {
+  const availability = [];
+  document.querySelectorAll('.avail-cb:checked').forEach(cb => {
+    const i = parseInt(cb.dataset.day);
+    availability.push({
+      dayOfWeek: i,
+      startTime: document.querySelector(`.avail-start[data-day="${i}"]`).value,
+      endTime:   document.querySelector(`.avail-end[data-day="${i}"]`).value,
+    });
+  });
+  try {
+    await api('/walkers/profile', { method: 'PATCH', body: JSON.stringify({ availability }) });
+    showAlert('avail-alert', 'Availability saved!', 'success');
+  } catch(e) { showAlert('avail-alert', e.message); }
+}
+
+/* ── Profile ──────────────────────────────── */
+async function loadProfile() {
+  try {
+    const d  = await api('/auth/me');
+    const wp = d.user.walkerProfile || {};
+    document.getElementById('p-bio').value    = wp.bio        || '';
+    document.getElementById('p-exp').value    = wp.experience || '';
+    document.getElementById('p-age').value    = wp.age        || '';
+    document.getElementById('p-radius').value = wp.serviceRadius || 5;
+    loadMyReviews();
+  } catch(e) { console.error(e); }
+}
+
+async function saveProfile() {
+  try {
+    await api('/walkers/profile', {
+      method: 'PATCH',
+      body: JSON.stringify({
+        bio:           document.getElementById('p-bio').value,
+        experience:    document.getElementById('p-exp').value,
+        age:    parseInt(document.getElementById('p-age').value) || undefined,
+        serviceRadius: parseInt(document.getElementById('p-radius').value) || 5,
+      }),
+    });
+    showAlert('profile-alert', 'Profile updated!', 'success');
+  } catch(e) { showAlert('profile-alert', e.message); }
+}
+
+async function loadMyReviews() {
+  const el = document.getElementById('my-reviews');
+  try {
+    const me = getUser();
+    const d  = await api(`/walkers/${me._id || me.id}`);
+    if (!d.reviews.length) { el.innerHTML = '<p class="empty">No reviews yet.</p>'; return; }
+    el.innerHTML = d.reviews.map(r => `
+      <div style="padding:14px 0;border-bottom:1px solid var(--linen)">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <span style="font-weight:700;color:var(--amber)">${'★'.repeat(r.review.rating)}${'☆'.repeat(5-r.review.rating)}</span>
+          <span style="font-size:.78rem;color:var(--muted)">${fmt.date(r.scheduledDate)} · ${r.client?.firstName}</span>
+        </div>
+        ${r.review.comment ? `<p style="font-size:.875rem;font-style:italic">"${r.review.comment}"</p>` : ''}
+      </div>`).join('');
+  } catch(e) { el.innerHTML = '<p class="empty">Could not load reviews.</p>'; }
+}
+
+/* ── Startup ──────────────────────────────── */
+initEarnSelects();
+loadOverview();
+</script>
+</body>
+</html>
