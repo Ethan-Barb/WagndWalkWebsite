@@ -38,24 +38,11 @@
 
     <div class="auth-footer">Don't have an account? <a href="/register">Sign up</a></div>
 
-    <!-- Demo logins -->
-    <div style="margin-top:28px;padding:18px;background:var(--cream-2);border-radius:var(--radius-sm);border:1px solid var(--linen)">
-      <p style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px">Demo Accounts</p>
-      <div style="display:flex;flex-direction:column;gap:6px">
-        <button class="btn btn-ghost btn-sm" onclick="fill('admin@wagandwalk.com','Admin123!')">👑 Admin</button>
-        <button class="btn btn-ghost btn-sm" onclick="fill('emma@example.com','Walker123!')">🦮 Walker — Emma</button>
-        <button class="btn btn-ghost btn-sm" onclick="fill('sarah@example.com','Client123!')">🐕 Client — Sarah</button>
-      </div>
-    </div>
-  </div>
 
-</div>
 
 <script>
-  function fill(e, p) {
-    document.getElementById('email').value = e;
-    document.getElementById('password').value = p;
-  }
+
+
 
   document.getElementById('login-form').addEventListener('submit', async (ev) => {
     ev.preventDefault();
