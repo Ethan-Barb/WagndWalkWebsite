@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Log In — Wag &amp; Walk</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<div class="auth-page">
+
+  <div class="auth-visual">
+    <div style="position:relative;z-index:1">
+      <div style="font-size:3.5rem;margin-bottom:20px">🐾</div>
+      <h2>Welcome back!</h2>
+      <p>Your pups are waiting. Log in to manage your walks and connect with trusted walkers across Naperville.</p>
+    </div>
+  </div>
+
+  <div class="auth-form-wrap">
+    <a href="/" class="logo" style="margin-bottom:36px;display:block">🐾 Wag &amp; Walk</a>
+    <h1>Log in</h1>
+    <p class="subtitle">Enter your credentials to continue.</p>
+
+    <div id="alert-box"></div>
+
+    <form id="login-form">
+      <div class="form-group">
+        <label for="email">Email address</label>
+        <input type="email" id="email" placeholder="you@example.com" required autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="••••••••" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn btn-primary btn-full" id="submit-btn">Log In</button>
+    </form>
+
+    <div class="auth-footer">Don't have an account? <a href="/register">Sign up</a></div>
+
+    <!-- Demo logins -->
+    <div style="margin-top:28px;padding:18px;background:var(--cream-2);border-radius:var(--radius-sm);border:1px solid var(--linen)">
+      <p style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px">Demo Accounts</p>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <button class="btn btn-ghost btn-sm" onclick="fill('admin@wagandwalk.com','Admin123!')">👑 Admin</button>
+        <button class="btn btn-ghost btn-sm" onclick="fill('emma@example.com','Walker123!')">🦮 Walker — Emma</button>
+        <button class="btn btn-ghost btn-sm" onclick="fill('sarah@example.com','Client123!')">🐕 Client — Sarah</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function fill(e, p) {
+    document.getElementById('email').value = e;
+    document.getElementById('password').value = p;
+  }
+
+  document.getElementById('login-form').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const btn = document.getElementById('submit-btn');
+    btn.textContent = 'Logging in…'; btn.disabled = true;
+
+    try {
+      const res  = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email:    document.getElementById('email').value,
+          password: document.getElementById('password').value,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Login failed');
+
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user',  JSON.stringify(data.user));
+
+      const role = data.user.role;
+      if      (role === 'admin')  location.href = '/dashboard/admin';
+      else if (role === 'walker') location.href = '/dashboard/walker';
+      else                        location.href = '/dashboard/client';
+
+    } catch (err) {
+      document.getElementById('alert-box').innerHTML =
+        `<div class="alert alert-error">${err.message}</div>`;
+      btn.textContent = 'Log In'; btn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>
