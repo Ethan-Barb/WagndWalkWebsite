@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Walker Dashboard — Wag & Walk</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<button class="sidebar-toggle" onclick="toggleSidebar()">Menu</button>
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+<div class="dash-layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="dash-main">
+    <div class="dash-header">
+      <div><h1 id="greeting">Walker Dashboard</h1><p class="welcome" id="welcome-text"></p></div>
+      <span class="badge" id="avail-badge">Available</span>
+    </div>
+
+    <!-- Overview -->
+    <div id="section-overview">
+      <div class="stat-cards" id="stat-cards"></div>
+      <div class="card"><div class="card-header"><h3>Pending requests</h3><span class="badge badge-warning" id="pending-count">0</span></div><div class="card-body" id="pending-walks"><div class="spinner"></div></div></div>
+      <div class="grid-2">
+        <div class="card"><div class="card-header"><h3>Upcoming walks</h3></div><div class="card-body" id="upcoming-walks"><div class="spinner"></div></div></div>
+        <div class="card"><div class="card-header"><h3>Recent walks</h3></div><div class="card-body" id="recent-walks"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+
+    <!-- Schedule -->
+    <div id="section-schedule" style="display:none">
+      <h2 class="mb-3">My Schedule</h2>
+      <div class="card"><div class="card-header"><h3>Weekly availability</h3></div><div class="card-body"><div class="avail-grid" id="avail-display"></div></div></div>
+      <div class="card"><div class="card-header"><h3>All bookings</h3></div><div class="card-body" id="all-bookings"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- Earnings -->
+    <div id="section-earnings" style="display:none">
+      <h2 class="mb-3">Earnings</h2>
+      <div class="filter-bar">
+        <select id="earnings-month" onchange="loadEarnings()"><option value="1">Jan</option><option value="2">Feb</option><option value="3">Mar</option><option value="4">Apr</option><option value="5">May</option><option value="6">Jun</option><option value="7">Jul</option><option value="8">Aug</option><option value="9">Sep</option><option value="10">Oct</option><option value="11">Nov</option><option value="12">Dec</option></select>
+        <select id="earnings-year" onchange="loadEarnings()"></select>
+      </div>
+      <div class="stat-cards" id="earnings-stats"></div>
+      <div class="card"><div class="card-header"><h3>Completed walks</h3></div><div class="card-body table-wrap" id="earnings-table"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- Messages -->
+    <div id="section-messages" style="display:none">
+      <h2 class="mb-3">Messages</h2>
+      <div id="messages-container"><div class="spinner"></div></div>
+    </div>
+
+    <!-- Profile -->
+    <div id="section-profile" style="display:none">
+      <h2 class="mb-3">My Profile</h2>
+      <div class="card"><div class="card-body">
+        <div class="form-group"><label>Bio</label><textarea id="prof-bio" rows="3"></textarea></div>
+        <div class="form-group"><label>Experience</label><textarea id="prof-experience" rows="2"></textarea></div>
+        <div class="form-row">
+          <div class="form-group"><label>Available?</label><select id="prof-available"><option value="true">Yes</option><option value="false">Paused</option></select></div>
+          <div class="form-group"><label>Radius (miles)</label><input type="number" id="prof-radius" min="1" max="20"></div>
+        </div>
+        <h3 style="font-size:.9rem;margin:20px 0 12px;">Weekly Hours</h3>
+        <div id="avail-editor"></div>
+        <div class="flex gap-1 mt-3">
+          <button class="btn btn-primary btn-sm" onclick="saveProfile()">Save Profile</button>
+          <button class="btn btn-secondary btn-sm" onclick="initStripeConnect()">Connect Stripe Payouts</button>
+        </div>
+      </div></div>
+    </div>
+  </main>
+</div>
+
+<script src="/js/auth.js"></script>
+<script src="/js/booking.js"></script>
+<script src="/js/tips.js"></script>
+<script src="/js/payments.js"></script>
+<script src="/js/dashboard.js"></script>
+<script src="/js/messages.js"></script>
+<script>
+if (!requireAuth(['walker'])) throw 'redirect';
+const user = getUser();
+const wp = user.walkerProfile || {};
+renderDashNav('sidebar');
+initSectionRouter(['overview','schedule','messages','earnings','profile']);
+window.addEventListener('hashchange', () => { if (location.hash === '#messages') loadMessagesSection('messages-container', false); });
+initAnimations();
+
+document.getElementById('greeting').textContent = 'Hey, ' + user.firstName;
+document.getElementById('welcome-text').textContent = (wp.averageRating || 0).toFixed(1) + ' rating · ' + (wp.totalWalks || 0) + ' walks completed';
+document.getElementById('avail-badge').textContent = wp.isAvailable ? 'Available' : 'Paused';
+document.getElementById('avail-badge').className = 'badge ' + (wp.isAvailable ? 'badge-accepted' : 'badge-cancelled');
+
+const now = new Date();
+document.getElementById('earnings-month').value = now.getMonth() + 1;
+const ys = document.getElementById('earnings-year');
+for (let y = now.getFullYear(); y >= now.getFullYear() - 2; y--) ys.innerHTML += '<option value="' + y + '">' + y + '</option>';
+
+loadWalkerDash(); loadEarnings(); loadAllBookings(); initProfileForm(); renderAvailDisplay();
+
+async function loadWalkerDash() {
+  try {
+    const data = await api('/walkers/dashboard');
+    const w = data.walker?.walkerProfile || wp;
+    document.getElementById('stat-cards').innerHTML =
+      '<div class="stat-card"><div class="label">Upcoming</div><div class="value">' + (data.upcomingWalks||[]).length + '</div></div>' +
+      '<div class="stat-card"><div class="label">Pending</div><div class="value">' + (data.pendingWalks||[]).length + '</div></div>' +
+      '<div class="stat-card"><div class="label">Earned</div><div class="value">' + formatCents(w.totalEarnings||0) + '</div></div>' +
+      '<div class="stat-card"><div class="label">Tips</div><div class="value">' + formatCents(w.totalTips||0) + '</div></div>';
+    document.getElementById('pending-count').textContent = (data.pendingWalks||[]).length;
+    renderWalks('pending-walks', data.pendingWalks || [], 'pending');
+    renderWalks('upcoming-walks', data.upcomingWalks || [], 'upcoming');
+    renderWalks('recent-walks', data.recentWalks || [], 'recent');
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+function renderWalks(id, bookings, type) {
+  const el = document.getElementById(id);
+  if (!bookings.length) { el.innerHTML = '<div class="empty-state"><p>No ' + type + ' walks</p></div>'; return; }
+  el.innerHTML = bookings.map(b => {
+    const c = b.client ? b.client.firstName + ' ' + b.client.lastName : 'Unknown';
+    const dogs = (b.dogs || []).map(d => d.name + ' (' + d.size + ')').join(', ');
+    const instr = (b.dogs || []).filter(d => d.specialInstructions).map(d => d.name + ': ' + d.specialInstructions).join('; ');
+    return '<div class="booking-card"><div><div class="booking-card-header"><h4>' + c + '</h4>' + statusBadge(b.status) + '</div>' +
+    '<div class="booking-meta"><span>' + formatDate(b.scheduledDate) + '</span><span>' + formatTime(b.startTime) + ' – ' + formatTime(b.endTime) + '</span><span>' + formatCents(b.totalPrice) + '</span></div>' +
+    '<div class="booking-dogs">' + (b.dogs||[]).map(d => '<span class="dog-tag">' + d.name + ' · ' + d.size + '</span>').join('') + '</div>' +
+    (instr ? '<div class="text-xs text-muted mt-1">' + instr + '</div>' : '') +
+    (b.tipAmount ? '<div class="text-xs mt-1">Tip: ' + formatCents(b.tipAmount) + '</div>' : '') +
+    (b.review?.rating ? '<div class="text-xs mt-1"><span class="review-stars">' + starRating(b.review.rating) + '</span> ' + (b.review.comment||'') + '</div>' : '') +
+    '</div><div class="booking-actions">' +
+    (b.client ? '<button class="btn btn-sm btn-ghost" onclick="startConversation(\'' + (b.client._id || '') + '\',\'' + c + '\')">Message</button>' : '') +
+    (type === 'pending' ? '<button class="btn btn-sm btn-success" onclick="acceptB(\'' + b._id + '\')">Accept</button><button class="btn btn-sm btn-ghost" style="color:var(--danger)" onclick="declineB(\'' + b._id + '\')">Decline</button>' : '') +
+    (type === 'upcoming' ? '<button class="btn btn-sm btn-success" onclick="completeB(\'' + b._id + '\')">Complete</button><button class="btn btn-sm btn-ghost" onclick="cancelWB(\'' + b._id + '\')">Cancel</button>' : '') +
+    '</div></div>';
+  }).join('');
+}
+
+async function acceptB(id) { try { await api('/bookings/' + id + '/accept', { method: 'PATCH' }); showToast('Accepted!', 'success'); loadWalkerDash(); } catch (e) { showToast(e.message, 'error'); } }
+async function declineB(id) { const r = prompt('Reason (optional):') || ''; try { await api('/bookings/' + id + '/decline', { method: 'PATCH', body: { reason: r } }); showToast('Declined', 'info'); loadWalkerDash(); } catch (e) { showToast(e.message, 'error'); } }
+async function completeB(id) { if (!confirmAction('Mark as completed?')) return; try { await api('/bookings/' + id + '/complete', { method: 'PATCH' }); showToast('Walk completed!', 'success'); loadWalkerDash(); } catch (e) { showToast(e.message, 'error'); } }
+async function cancelWB(id) { if (!confirmAction('Cancel this walk?')) return; try { await api('/bookings/' + id + '/cancel', { method: 'PATCH', body: { reason: 'Walker cancelled' } }); showToast('Cancelled', 'info'); loadWalkerDash(); } catch (e) { showToast(e.message, 'error'); } }
+
+// Earnings
+async function loadEarnings() {
+  const m = document.getElementById('earnings-month').value, y = document.getElementById('earnings-year').value;
+  try {
+    const d = await api('/walkers/earnings?month=' + m + '&year=' + y);
+    const t = d.totals || {};
+    document.getElementById('earnings-stats').innerHTML =
+      '<div class="stat-card"><div class="label">Walks</div><div class="value">' + (t.walks||0) + '</div></div>' +
+      '<div class="stat-card"><div class="label">Gross</div><div class="value">' + formatCents(t.earnings||0) + '</div></div>' +
+      '<div class="stat-card"><div class="label">Your Cut (80%)</div><div class="value">' + formatCents(t.walkerEarnings||0) + '</div></div>' +
+      '<div class="stat-card"><div class="label">Tips</div><div class="value">' + formatCents(t.tips||0) + '</div></div>';
+    const e = d.earnings || [];
+    const el = document.getElementById('earnings-table');
+    if (!e.length) { el.innerHTML = '<p class="text-muted">No walks this period.</p>'; return; }
+    el.innerHTML = '<table><thead><tr><th>Date</th><th>Time</th><th>Price</th><th>Tip</th><th>Payout</th></tr></thead><tbody>' + e.map(b => '<tr><td>' + formatDate(b.scheduledDate) + '</td><td>' + formatTime(b.startTime) + '</td><td>' + formatCents(b.totalPrice) + '</td><td>' + (b.tipAmount ? formatCents(b.tipAmount) : '—') + '</td><td><strong>' + formatCents(Math.round(b.totalPrice * .8) + (b.tipAmount || 0)) + '</strong></td></tr>').join('') + '</tbody></table>';
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+async function loadAllBookings() { try { const d = await api('/bookings'); renderWalks('all-bookings', d.bookings || [], 'all'); } catch (e) { document.getElementById('all-bookings').innerHTML = '<p class="text-muted">Error.</p>'; } }
+
+function renderAvailDisplay() {
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], avail = wp.availability || [];
+  const el = document.getElementById('avail-display'); if (!el) return;
+  el.innerHTML = days.map((n, i) => { const s = avail.filter(a => a.dayOfWeek === i); return '<div class="avail-day ' + (s.length ? 'active' : '') + '"><div class="day-name">' + n + '</div>' + (s.length ? s.map(a => '<div class="day-time">' + formatTime(a.startTime) + ' – ' + formatTime(a.endTime) + '</div>').join('') : '<div class="day-time">Off</div>') + '</div>'; }).join('');
+}
+
+function initProfileForm() {
+  document.getElementById('prof-bio').value = wp.bio || '';
+  document.getElementById('prof-experience').value = wp.experience || '';
+  document.getElementById('prof-available').value = String(wp.isAvailable !== false);
+  document.getElementById('prof-radius').value = wp.serviceRadius || 5;
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'], avail = wp.availability || [];
+  document.getElementById('avail-editor').innerHTML = days.map((n, i) => { const s = avail.find(a => a.dayOfWeek === i); return '<div style="display:flex;gap:10px;align-items:center;margin-bottom:6px;"><label style="width:80px;font-size:.8rem;font-weight:500;">' + n + '</label><input type="checkbox" class="avail-cb" data-day="' + i + '"' + (s ? ' checked' : '') + ' style="accent-color:var(--accent);"><input type="time" class="avail-start" data-day="' + i + '" value="' + (s?.startTime || '09:00') + '" style="padding:6px 8px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:.78rem;"><span style="font-size:.75rem;color:var(--ink-muted);">to</span><input type="time" class="avail-end" data-day="' + i + '" value="' + (s?.endTime || '17:00') + '" style="padding:6px 8px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:.78rem;"></div>'; }).join('');
+}
+
+async function saveProfile() {
+  const avail = [];
+  document.querySelectorAll('.avail-cb:checked').forEach(cb => { const d = parseInt(cb.dataset.day); const s = document.querySelector('.avail-start[data-day="' + d + '"]').value; const e = document.querySelector('.avail-end[data-day="' + d + '"]').value; if (s && e) avail.push({ dayOfWeek: d, startTime: s, endTime: e }); });
+  try {
+    await api('/walkers/profile', { method: 'PATCH', body: { bio: document.getElementById('prof-bio').value, experience: document.getElementById('prof-experience').value, isAvailable: document.getElementById('prof-available').value === 'true', serviceRadius: parseInt(document.getElementById('prof-radius').value) || 5, availability: avail } });
+    showToast('Profile saved', 'success');
+    const u = getUser(); u.walkerProfile = { ...u.walkerProfile, bio: document.getElementById('prof-bio').value, availability: avail }; localStorage.setItem('user', JSON.stringify(u));
+  } catch (e) { showToast(e.message, 'error'); }
+}
+</script>
+</body>
+</html>
