@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard — Wag &amp; Walk</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+<button class="sidebar-toggle" onclick="toggleSidebar()">☰ Menu</button>
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<div class="dash-layout">
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <main class="dash-main">
+    <div class="dash-header">
+      <div><h1>Admin Dashboard</h1><p class="welcome">Platform overview &amp; management</p></div>
+      <span class="badge badge-admin">Admin</span>
+    </div>
+
+    <!-- ── Overview ─────────────────────────── -->
+    <div id="section-overview">
+      <div class="stat-cards" id="stat-cards"><div class="spinner"></div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <div class="card">
+          <div class="card-header"><h3>Recent Bookings</h3></div>
+          <div class="card-body table-wrap" id="recent-bookings"><div class="spinner"></div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>Recent Users</h3></div>
+          <div class="card-body table-wrap" id="recent-users"><div class="spinner"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Users ────────────────────────────── -->
+    <div id="section-users" style="display:none">
+      <h2 class="mb-2">User Management</h2>
+      <div class="filter-bar">
+        <input type="text" id="user-search" placeholder="Search by name or email…" oninput="loadUsers()">
+        <select id="user-role-filter" onchange="loadUsers()">
+          <option value="">All Roles</option><option value="client">Clients</option><option value="walker">Walkers</option><option value="admin">Admins</option>
+        </select>
+        <select id="user-active-filter" onchange="loadUsers()">
+          <option value="">All Status</option><option value="true">Active</option><option value="false">Deactivated</option>
+        </select>
+      </div>
+      <div class="card">
+        <div class="card-body table-wrap" id="users-table"><div class="spinner"></div></div>
+      </div>
+      <div id="users-pagination" class="pagination"></div>
+
+      <!-- Send Message Modal -->
+      <div class="modal-overlay" id="msg-modal-overlay">
+        <div class="modal">
+          <h2>Send Message</h2>
+          <p id="msg-recipient-label">To: —</p>
+          <input type="hidden" id="msg-user-id">
+          <div class="form-group"><label>Title</label><input id="msg-title" placeholder="Subject of your message"></div>
+          <div class="form-group"><label>Message</label><textarea id="msg-body" placeholder="Write your message here..." rows="3"></textarea></div>
+          <div style="display:flex;gap:16px;margin-bottom:16px;">
+            <label style="display:flex;align-items:center;gap:6px;font-size:.82rem;cursor:pointer"><input type="checkbox" id="msg-send-sms"> Also send SMS</label>
+          </div>
+          <div class="modal-actions">
+            <button class="btn btn-primary btn-full" onclick="sendAdminMessage()">Send Message</button>
+            <button class="btn btn-secondary btn-full" onclick="closeMsgModal()">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Bookings ─────────────────────────── -->
+    <div id="section-bookings" style="display:none">
+      <h2 class="mb-2">Booking Management</h2>
+      <div class="filter-bar">
+        <select id="booking-status-filter" onchange="loadAdminBookings()">
+          <option value="">All Statuses</option><option value="pending">Pending</option><option value="accepted">Accepted</option>
+          <option value="completed">Completed</option><option value="cancelled">Cancelled</option><option value="declined">Declined</option>
+        </select>
+        <input type="date" id="booking-date-filter" onchange="loadAdminBookings()">
+      </div>
+      <div class="card">
+        <div class="card-body table-wrap" id="bookings-table"><div class="spinner"></div></div>
+      </div>
+      <div id="bookings-pagination" class="pagination"></div>
+    </div>
+
+    <!-- ── Messages (Admin views ALL) ─────── -->
+    <div id="section-messages" style="display:none">
+      <h2 class="mb-3">All Messages</h2>
+      <p class="text-sm text-muted mb-3">View all conversations between clients and walkers across the platform.</p>
+      <div id="admin-messages-container"><div class="spinner"></div></div>
+    </div>
+
+    <!-- ── Payments ─────────────────────────── -->
+    <div id="section-payments" style="display:none">
+      <h2 class="mb-2">Payment Overview</h2>
+      <div class="stat-cards" id="payment-stats"></div>
+    </div>
+
+    <!-- ── Analytics ────────────────────────── -->
+    <div id="section-analytics" style="display:none">
+      <h2 class="mb-2">Analytics</h2>
+      <div class="stat-cards" id="analytics-top-walkers"></div>
+      <div class="card">
+        <div class="card-header"><h3>Monthly Revenue</h3></div>
+        <div class="card-body" id="revenue-chart"></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>Daily Bookings (30 days)</h3></div>
+        <div class="card-body" id="daily-chart"></div>
+      </div>
+    </div>
+
+    <!-- ── Site Content CMS ─────────────────── -->
+    <div id="section-cms" style="display:none">
+      <h2 class="mb-2">Site Content Manager</h2>
+
+      <!-- Hero -->
+      <div class="card">
+        <div class="card-header"><h3>Hero Section</h3></div>
+        <div class="card-body">
+          <div class="form-group"><label>Headline (HTML allowed for <em>italics</em>)</label><input id="cms-hero-headline" placeholder="Your dog deserves..."></div>
+          <div class="form-group"><label>Subheadline</label><input id="cms-hero-sub" placeholder="Connect with trusted..."></div>
+          <div class="form-group"><label>Background Image URL</label><input id="cms-hero-image" placeholder="https://images.unsplash.com/..."></div>
+          <div class="form-row">
+            <div class="form-group"><label>Primary CTA Text</label><input id="cms-hero-cta1" placeholder="Book a Walk"></div>
+            <div class="form-group"><label>Secondary CTA Text</label><input id="cms-hero-cta2" placeholder="Become a Walker"></div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="saveHero()">Save Hero</button>
+        </div>
+      </div>
+
+      <!-- Announcement -->
+      <div class="card">
+        <div class="card-header"><h3>Announcement Banner</h3></div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group"><label>Banner Text</label><input id="cms-announce-text" placeholder="Holiday hours..."></div>
+            <div class="form-group"><label>Visible?</label><select id="cms-announce-visible"><option value="true">Yes</option><option value="false">No</option></select></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Link URL (optional)</label><input id="cms-announce-url" placeholder="https://..."></div>
+            <div class="form-group"><label>Link Text</label><input id="cms-announce-link-text" placeholder="Learn more"></div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="saveAnnouncement()">Save Announcement</button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="card">
+        <div class="card-header"><h3>Homepage Stats</h3></div>
+        <div class="card-body">
+          <div class="form-row" style="grid-template-columns:1fr 1fr 1fr">
+            <div class="form-group"><label>Active Walkers</label><input type="number" id="cms-stat-walkers" placeholder="50"></div>
+            <div class="form-group"><label>Walks Completed</label><input type="number" id="cms-stat-walks" placeholder="500"></div>
+            <div class="form-group"><label>Average Rating</label><input id="cms-stat-rating" placeholder="4.9"></div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="saveStats()">Save Stats</button>
+        </div>
+      </div>
+
+      <!-- Featured Walkers -->
+      <div class="card">
+        <div class="card-header"><h3>Featured Walkers</h3></div>
+        <div class="card-body">
+          <p class="text-sm text-muted mb-2">Select which walkers appear in the "Meet Our Walkers" section on the homepage. If none are selected, a default set is shown.</p>
+          <div id="cms-walker-list" style="display:flex;flex-direction:column;gap:8px;"><div class="spinner"></div></div>
+          <button class="btn btn-primary btn-sm mt-3" onclick="saveFeaturedWalkers()">Save Featured Walkers</button>
+        </div>
+      </div>
+
+      <!-- Pricing -->
+      <div class="card">
+        <div class="card-header"><h3>Pricing</h3></div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group"><label>Section Heading</label><input id="cms-pricing-heading"></div>
+            <div class="form-group"><label>Section Subheading</label><input id="cms-pricing-sub"></div>
+          </div>
+          <div id="cms-pricing-tiers"></div>
+          <button class="btn btn-secondary btn-sm mt-2" onclick="addPricingTier()">+ Add Tier</button>
+          <button class="btn btn-primary btn-sm mt-2" onclick="savePricing()">Save Pricing</button>
+        </div>
+      </div>
+
+      <!-- Testimonials -->
+      <div class="card">
+        <div class="card-header"><h3>Testimonials</h3><button class="btn btn-secondary btn-sm" onclick="addTestimonial()">+ Add</button></div>
+        <div class="card-body" id="cms-testimonials"></div>
+      </div>
+
+      <!-- Gallery -->
+      <div class="card">
+        <div class="card-header"><h3>Photo Gallery</h3></div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group"><label>Image URL</label><input id="cms-gallery-url" placeholder="https://images.unsplash.com/..."></div>
+            <div class="form-group"><label>Caption</label><input id="cms-gallery-caption" placeholder="Happy pup at Centennial Park"></div>
+          </div>
+          <button class="btn btn-secondary btn-sm mb-2" onclick="addGalleryImage()">Add Image</button>
+          <div id="cms-gallery-list" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="/js/auth.js"></script>
+<script src="/js/dashboard.js"></script>
+<script src="/js/messages.js"></script>
+<script>
+  if (!requireAuth(['admin'])) throw 'redirect';
+  renderDashNav('sidebar');
+  initSectionRouter(['overview', 'users', 'bookings', 'messages', 'payments', 'analytics', 'cms']);
+
+  // Load admin messages when tab opened
+  window.addEventListener('hashchange', () => {
+    if (location.hash === '#messages') loadMessagesSection('admin-messages-container', true);
+  });
+
+  let usersPage = 1, bookingsPage = 1;
+
+  loadAdminDashboard();
+  loadUsers();
+  loadAdminBookings();
+  loadAnalytics();
+  loadCmsContent();
+
+  async function loadAdminDashboard() {
+    try {
+      const data = await api('/admin/dashboard');
+      const us = data.userStats || {};
+      const bs = data.bookingStats || {};
+      const rs = data.revenueStats || {};
+
+      document.getElementById('stat-cards').innerHTML = `
+        <div class="stat-card"><div class="icon">👥</div><div class="label">Clients</div><div class="value">${us.totalClients||0}</div></div>
+        <div class="stat-card"><div class="icon">🦮</div><div class="label">Walkers</div><div class="value">${us.totalWalkers||0}</div></div>
+        <div class="stat-card"><div class="icon">📅</div><div class="label">Total Bookings</div><div class="value">${bs.totalBookings||0}</div><div class="sub">${bs.pendingBookings||0} pending</div></div>
+        <div class="stat-card"><div class="icon">💰</div><div class="label">Total Revenue</div><div class="value">${formatCents(rs.totalRevenue||0)}</div><div class="sub">Platform: ${formatCents(rs.platformRevenue||0)}</div></div>
+      `;
+
+      // Payment stats (reuse on payments tab)
+      document.getElementById('payment-stats').innerHTML = `
+        <div class="stat-card"><div class="label">Gross Revenue</div><div class="value">${formatCents(rs.totalRevenue||0)}</div></div>
+        <div class="stat-card"><div class="label">Platform Fee (20%)</div><div class="value">${formatCents(rs.platformRevenue||0)}</div></div>
+        <div class="stat-card"><div class="label">Walker Payouts (80%)</div><div class="value">${formatCents((rs.totalRevenue||0) - (rs.platformRevenue||0))}</div></div>
+        <div class="stat-card"><div class="label">Total Tips</div><div class="value">${formatCents(rs.totalTips||0)}</div></div>
+      `;
+
+      // Recent bookings
+      const rb = data.recentBookings || [];
+      document.getElementById('recent-bookings').innerHTML = rb.length ? `<table><thead><tr><th>Date</th><th>Client</th><th>Walker</th><th>Status</th></tr></thead><tbody>
+        ${rb.map(b => `<tr>
+          <td>${formatDate(b.scheduledDate)}</td>
+          <td>${b.client?.firstName || '?'} ${b.client?.lastName || ''}</td>
+          <td>${b.walker?.firstName || 'Unassigned'}</td>
+          <td>${statusBadge(b.status)}</td>
+        </tr>`).join('')}</tbody></table>` : '<p class="text-muted">No bookings yet.</p>';
+
+      // Recent users
+      const ru = data.recentUsers || [];
+      document.getElementById('recent-users').innerHTML = ru.length ? `<table><thead><tr><th>Name</th><th>Role</th><th>Joined</th></tr></thead><tbody>
+        ${ru.map(u => `<tr>
+          <td>${u.firstName} ${u.lastName}</td>
+          <td><span class="badge badge-${u.role}">${u.role}</span></td>
+          <td>${formatDate(u.createdAt)}</td>
+        </tr>`).join('')}</tbody></table>` : '<p class="text-muted">No users yet.</p>';
+    } catch (err) { showToast(err.message, 'error'); }
+  }
+
+  // ── Users ─────────────────────────────────────
+  async function loadUsers() {
+    const search = document.getElementById('user-search')?.value || '';
+    const role = document.getElementById('user-role-filter')?.value || '';
+    const isActive = document.getElementById('user-active-filter')?.value || '';
+
+    let url = `/admin/users?page=${usersPage}&limit=15`;
+    if (search) url += `&search=${encodeURIComponent(search)}`;
+    if (role) url += `&role=${role}`;
+    if (isActive) url += `&isActive=${isActive}`;
+
+    try {
+      const data = await api(url);
+      const users = data.users || [];
+      const el = document.getElementById('users-table');
+
+      el.innerHTML = users.length ? `<table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+        ${users.map(u => `<tr>
+          <td>${u.firstName} ${u.lastName}</td>
+          <td>${u.email}</td>
+          <td><span class="badge badge-${u.role}">${u.role}</span></td>
+          <td>${u.isActive ? '<span class="badge badge-completed">Active</span>' : '<span class="badge badge-cancelled">Inactive</span>'}</td>
+          <td style="display:flex;gap:6px;">
+            <button class="btn btn-ghost btn-sm" onclick="openMsgModal('${u._id}', '${u.firstName} ${u.lastName}')">Message</button>
+            <button class="btn btn-ghost btn-sm" onclick="toggleUserActive('${u._id}', ${!u.isActive})">${u.isActive ? 'Deactivate' : 'Activate'}</button>
+          </td>
+        </tr>`).join('')}</tbody></table>` : '<p class="text-muted">No users found.</p>';
+
+      // Pagination
+      renderPagination('users-pagination', data.page, data.pages, (p) => { usersPage = p; loadUsers(); });
+    } catch (err) { showToast(err.message, 'error'); }
+  }
+
+  async function toggleUserActive(id, isActive) {
+    try {
+      await api(`/admin/users/${id}`, { method: 'PATCH', body: { isActive } });
+      showToast(`User ${isActive ? 'activated' : 'deactivated'}`, 'success');
+      loadUsers();
+    } catch (err) { showToast(err.message, 'error'); }
+  }
+
+  // ── Bookings ──────────────────────────────────
+  async function loadAdminBookings() {
+    const status = document.getElementById('booking-status-filter')?.value || '';
+    const date = document.getElementById('booking-date-filter')?.value || '';
+
+    let url = `/admin/bookings?page=${bookingsPage}&limit=15`;
+    if (status) url += `&status=${status}`;
+    if (date) url += `&date=${date}`;
+
+    try {
+      const data = await api(url);
+      const bookings = data.bookings || [];
+      const el = document.getElementById('bookings-table');
+
+      el.innerHTML = bookings.length ? `<table><thead><tr><th>Date</th><th>Client</th><th>Walker</th><th>Dogs</th><th>Status</th><th>Price</th><th>Actions</th></tr></thead><tbody>
+        ${bookings.map(b => `<tr>
+          <td>${formatDate(b.scheduledDate)}<br><span class="text-xs">${formatTime(b.startTime)}</span></td>
+          <td>${b.client?.firstName || '?'} ${b.client?.lastName || ''}</td>
+          <td>${b.walker?.firstName || 'None'} ${b.walker?.lastName || ''}</td>
+          <td>${(b.dogs||[]).map(d => d.name).join(', ')}</td>
+          <td>${statusBadge(b.status)}</td>
+          <td>${formatCents(b.totalPrice)}</td>
+          <td>
+            ${b.status === 'pending' ? `<button class="btn btn-ghost btn-sm" onclick="adminCancelBooking('${b._id}')">Cancel</button>` : ''}
+            ${b.status === 'pending' ? `<button class="btn btn-ghost btn-sm" onclick="adminAcceptBooking('${b._id}')">Accept</button>` : ''}
+          </td>
+        </tr>`).join('')}</tbody></table>` : '<p class="text-muted">No bookings found.</p>';
+
+      renderPagination('bookings-pagination', data.page, data.pages, (p) => { bookingsPage = p; loadAdminBookings(); });
+    } catch (err) { showToast(err.message, 'error'); }
+  }
+
+  async function adminCancelBooking(id) {
+    if (!confirmAction('Cancel this booking?')) return;
+    try {
+      await api(`/admin/bookings/${id}`, { method: 'DELETE', body: { reason: 'Admin cancelled' } });
+      showToast('Booking cancelled', 'success');
+      loadAdminBookings();
+      loadAdminDashboard();
+    } catch (err) { showToast(err.message, 'error'); }
+  }
+
+  async function adminAcceptBooking(id) {
+    try {
+      await api(`/admin/bookings/${id}`, { method: 'PATCH', body: { status: 'accepted' } });
+      showToast('Booking accepted', 'success');
+      loadAdminBookings();
+    } catch (err) { showToast(err.message, 'error'); }
+  }
+
+  // ── Analytics ─────────────────────────────────
+  async function loadAnalytics() {
+    try {
+      const data = await api('/admin/analytics');
+
+      // Top walkers
+      const tw = data.topWalkers || [];
+      document.getElementById('analytics-top-walkers').innerHTML = tw.length
+        ? tw.slice(0, 5).map((w, i) => `
+          <div class="stat-card">
+            <div class="label">#${i+1} ${w.firstName} ${w.lastName}</div>
+            <div class="value">${w.walkerProfile?.totalWalks || 0} walks</div>
+            <div class="sub">⭐ ${(w.walkerProfile?.averageRating || 0).toFixed(1)} · Earned: ${formatCents(w.walkerProfile?.totalEarnings || 0)}</div>
+          </div>`).join('')
+        : '<p class="text-muted">No walker data yet.</p>';
+
+      // Revenue by month
+      const rbm = data.revenueByMonth || [];
+      document.getElementById('revenue-chart').innerHTML = rbm.length
+        ? `<table><thead><tr><th>Month</th><th>Walks</th><th>Revenue</th><th>Tips</th></tr></thead><tbody>
+          ${rbm.map(r => `<tr><td>${r._id}</td><td>${r.walks}</td><td>${formatCents(r.revenue)}</td><td>${formatCents(r.tips)}</td></tr>`).join('')}
+          </tbody></table>`
+        : '<p class="text-muted">No revenue data yet.</p>';
+
+      // Daily bookings
+      const db = data.dailyBookings || [];
+      document.getElementById('daily-chart').innerHTML = db.length
+        ? `<div style="display:flex;gap:3px;align-items:flex-end;height:120px;padding-top:10px;">
+          ${db.map(d => {
+            const maxCount = Math.max(...db.map(x => x.count), 1);
+            const h = Math.max(8, (d.count / maxCount) * 100);
+            return `<div style="flex:1;background:var(--accent);border-radius:4px 4px 0 0;height:${h}px;position:relative;" title="${d._id}: ${d.count} bookings">
+              <span style="position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:.65rem;color:var(--ink-muted);">${d.count}</span>
+            </div>`;
+          }).join('')}
+          </div>
+          <div style="display:flex;gap:3px;margin-top:4px;">
+          ${db.map(d => `<div style="flex:1;text-align:center;font-size:.55rem;color:var(--ink-muted);">${d._id.slice(5)}</div>`).join('')}
+          </div>`
+        : '<p class="text-muted">No booking data yet.</p>';
+    } catch (err) { showToast(err.message, 'error'); }
+  }
+
+  // ── Pagination helper ─────────────────────────
+  function renderPagination(containerId, current, total, onPage) {
+    const el = document.getElementById(containerId);
+    if (total <= 1) { el.innerHTML = ''; return; }
+    let html = '';
+    html += `<button ${current <= 1 ? 'disabled' : ''} onclick="this._fn(${current-1})">‹</button>`;
+    for (let p = 1; p <= total; p++) {
+      html += `<button class="${p === current ? 'active' : ''}" onclick="this._fn(${p})">${p}</button>`;
+    }
+    html += `<button ${current >= total ? 'disabled' : ''} onclick="this._fn(${current+1})">›</button>`;
+    el.innerHTML = html;
+    el.querySelectorAll('button').forEach(btn => btn._fn = onPage);
+  }
+
+  // ══════════════════════════════════════════════
+  // CMS Management
+  // ══════════════════════════════════════════════
+  let cmsData = null;
+
+  async function loadCmsContent() {
+    try {
+      const data = await api('/admin/site-content');
+      cmsData = data.content;
+      populateCmsFields();
+      loadWalkerPicker();
+    } catch (err) { console.log('CMS load error:', err.message); }
+  }
+
+  function populateCmsFields() {
+    const c = cmsData; if (!c) return;
+    // Hero
+    if (c.hero) {
+      document.getElementById('cms-hero-headline').value = c.hero.headline || '';
+      document.getElementById('cms-hero-sub').value = c.hero.subheadline || '';
+      document.getElementById('cms-hero-image').value = c.hero.imageUrl || '';
+      document.getElementById('cms-hero-cta1').value = c.hero.ctaPrimary || '';
+      document.getElementById('cms-hero-cta2').value = c.hero.ctaSecondary || '';
+    }
+    // Announcement
+    if (c.announcement) {
+      document.getElementById('cms-announce-text').value = c.announcement.text || '';
+      document.getElementById('cms-announce-visible').value = String(!!c.announcement.isVisible);
+      document.getElementById('cms-announce-url').value = c.announcement.linkUrl || '';
+      document.getElementById('cms-announce-link-text').value = c.announcement.linkText || '';
+    }
+    // Stats
+    if (c.stats) {
+      document.getElementById('cms-stat-walkers').value = c.stats.activeWalkers || 50;
+      document.getElementById('cms-stat-walks').value = c.stats.walksCompleted || 500;
+      document.getElementById('cms-stat-rating').value = c.stats.averageRating || '4.9';
+    }
+    // Pricing
+    if (c.pricing) {
+      document.getElementById('cms-pricing-heading').value = c.pricing.heading || '';
+      document.getElementById('cms-pricing-sub').value = c.pricing.subheading || '';
+      renderPricingTiers(c.pricing.tiers || []);
+    }
+    // Testimonials
+    renderCmsTestimonials(c.testimonials || []);
+    // Gallery
+    renderCmsGallery(c.gallery || []);
+  }
+
+  async function saveHero() {
+    try {
+      await api('/admin/site-content', { method: 'PATCH', body: { hero: {
+        headline: document.getElementById('cms-hero-headline').value,
+        subheadline: document.getElementById('cms-hero-sub').value,
+        imageUrl: document.getElementById('cms-hero-image').value,
+        ctaPrimary: document.getElementById('cms-hero-cta1').value,
+        ctaSecondary: document.getElementById('cms-hero-cta2').value,
+      }}});
+      showToast('Hero section updated', 'success');
+    } catch (err) { showToast(err.message, 'error'); }
+  }
+
+  async function saveAnnouncement() {
+    try {
+      await api('/admin/site-content', { method: 'PATCH', body: { announcement: {
+        text: document.getElementById('cms-announce-text').value,
+        isVisible: document.getElementById('cms-announce-visible').value === 'true',
+        linkUrl: document.getElementById('cms-announce-url').value,
+        linkText: document.getElementById('cms-announce-link-text').value,
+      }}});
+      showToast('Announcement updated', 'success');
+    } catch (err) { showToast(err.message, 'error'); }
+  }
+
+  async function saveStats() {
+    try {
+      await api('/admin/site-content', { method: 'PATCH', body: { stats: {
+        activeWalkers: parseInt(document.getElementById('cms-stat-walkers').value) || 50,
+        walksCompleted: parseInt(document.getElementById('cms-stat-walks').value) || 500,
+        averageRating: document.getElementById('cms-stat-rating').value || '4.9',
+      }}});
+      showToast('Stats updated', 'success');
+    } catch (err) { showToast(err.message, 'error'); }
+  }
+
+  // ── Featured Walkers Picker ─────────────────────
+  async function loadWalkerPicker() {
+    const el = document.getElementById('cms-walker-list');
+    try {
+      const data = await api('/admin/users?role=walker&limit=50');
+      const allWalkers = data.users || [];
+      // Get currently featured IDs
+      const featuredIds = (cmsData?.featuredWalkers || []).map(w => typeof w === 'string' ? w : w._id);
+
+      if (!allWalkers.length) {
+        el.innerHTML = '<p class="text-muted">No walkers registered yet.</p>';
+        return;
+      }
+
+      el.innerHTML = allWalkers.map(w => {
+        const isFeatured = featuredIds.includes(w._id);
+        const wp = w.walkerProfile || {};
+        const rating = (wp.averageRating || 0).toFixed(1);
+        const walks = wp.totalWalks || 0;
+        return '<label style="display:flex;align-items:center;gap:12px;padding:12px 16px;border:1.5px solid ' + (isFeatured ? 'var(--accent)' : 'var(--border)') + ';border-radius:10px;cursor:pointer;transition:all .2s;">' +
+          '<input type="checkbox" class="featured-walker-cb" value="' + w._id + '"' + (isFeatured ? ' checked' : '') + ' style="width:18px;height:18px;accent-color:var(--accent);">' +
+          '<div style="flex:1;">' +
+            '<strong style="font-size:.88rem;">' + w.firstName + ' ' + w.lastName + '</strong>' +
+            '<div style="font-size:.75rem;color:var(--ink-muted);">' + rating + ' rating · ' + walks + ' walks' + (wp.bio ? ' · ' + wp.bio.substring(0, 60) + (wp.bio.length > 60 ? '...' : '') : '') + '</div>' +
+          '</div>' +
+          '<span style="font-size:.72rem;color:' + (w.isActive ? 'var(--success)' : 'var(--danger)') + ';font-weight:600;">' + (w.isActive ? 'Active' : 'Inactive') + '</span>' +
+        '</label>';
+      }).join('');
+
+      // Highlight borders on check/uncheck
+      el.querySelectorAll('.featured-walker-cb').forEach(cb => {
+        cb.addEventListener('change', function() {
+          this.closest('label').style.borderColor = this.checked ? 'var(--accent)' : 'var(--border)';
+        });
+      });
+    } catch (err) {
+      el.innerHTML = '<p class="text-muted">Error loading walkers.</p>';
+    }
+  }
+
+  async function saveFeaturedWalkers() {
+    const selectedIds = [...document.querySelectorAll('.featured-walker-cb:checked')].map(cb => cb.value);
+    try {
+      const data = await api('/admin/site-content', { method: 'PATCH', body: { featuredWalkers: selectedIds }});
+      cmsData = data.content;
+      showToast(selectedIds.length ? 'Featured walkers updated — ' + selectedIds.length + ' selected' : 'Featured walkers cleared — homepage will hide the section', 'success');
+      // Reload picker to reflect new state
+      loadWalkerPicker();
+    } catch (err) { showToast(err.message, 'error'); }
+  }
+
+  function renderPricingTiers(tiers) {
+    document.getElementById('cms-pricing-tiers').innerHTML = tiers.map((t, i) => `
+      <div style="padding:12px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;">
+        <div class="form-row" style="grid-template-columns:2fr 1fr 1fr .5fr">
+          <div class="form-group"><label>Name</label><input class="pt-name" value="${t.name || ''}"></div>
+          <div class="form-group"><label>Price (cents)</label><input type="number" class="pt-price" value="${t.price || 0}"></div>
+          <div class="form-group"><label>Duration (min)</label><input type="number" class="pt-dur" value="${t.duration || 60}"></div>
+          <div class="form-group"><label>Popular?</label><select class="pt-pop"><option value="false" ${!t.isPopular ? 'selected' : ''}>No</option><option value="true" ${t.isPopular ? 'selected' : ''}>Yes</option></select></div>
+        </div>
+        <div class="form-group"><label>Description</label><input class="pt-desc" value="${t.description || ''}"></div>
+      </div>
+    `).join('');
+  }
+
+  function addPricingTier() {
+    const el = document.getElementById('cms-pricing-tiers');
+    el.innerHTML += `<div style="padding:12px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;">
+      <div class="form-row" style="grid-template-columns:2fr 1fr 1fr .5fr">
+        <div class="form-group"><label>Name</label><input class="pt-name" value=""></div>
+        <div class="form-group"><label>Price (cents)</label><input type="number" class="pt-price" value="2000"></div>
+        <div class="form-group"><label>Duration (min)</label><input type="number" class="pt-dur" value="30"></div>
+        <div class="form-group"><label>Popular?</label><select class="pt-pop"><option value="false" selected>No</option><option value="true">Yes</option></select></div>
+      </div>
+      <div class="form-group"><label>Description</label><input class="pt-desc" value=""></div>
+    </div>`;
+  }
+
+  async function savePricing() {
+    const tiers = [];
+    document.querySelectorAll('#cms-pricing-tiers > div').forEach((div, i) => {
+      tiers.push({
+        name: div.querySelector('.pt-name').value,
+        price: parseInt(div.querySelector('.pt-price').value) || 0,
+        duration: parseInt(div.querySelector('.pt-dur').value) || 30,
+        isPopular: div.querySelector('.pt-pop').value === 'true',
+        description: div.querySelector('.pt-desc').value,
+        isVisible: true, order: i,
+      });
+    });
+    try {
+      await api('/admin/site-content', { method: 'PATCH', body: { pricing: {
+        heading: document.getElementById('cms-pricing-heading').value,
+        subheading: document.getElementById('cms-pricing-sub').value,
+        tiers,
+      }}});
+      showToast('Pricing updated', 'success');
+    } catch (err) { showToast(err.message, 'error'); }
+  }
+
+  function renderCmsTestimonials(list) {
+    document.getElementById('cms-testimonials').innerHTML = list.map(t => `
+      <div style="padding:12px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+        <div><strong>${t.clientName}</strong>${t.dogName ? ' — ' + t.dogName : ''}<br><span class="text-sm text-muted">"${t.text.substring(0, 80)}${t.text.length > 80 ? '...' : ''}"</span></div>
+        <button class="btn btn-ghost btn-sm" style="color:var(--danger)" onclick="deleteTestimonial('${t._id}')">Remove</button>
+      </div>
+    `).join('') || '<p class="text-muted">No testimonials yet.</p>';
+  }
+
+  async function addTestimonial() {
+    const name = prompt('Client name:'); if (!name) return;
+    const dog = prompt('Dog name (optional):') || '';
+    const text = prompt('Testimonial text:'); if (!text) return;
+    try {
+      const data = await api('/admin/site-content/testimonials', { method: 'POST', body: { clientName: name, dogName: dog, text, rating: 5 }});
+      renderCmsTestimonials(data.testimonials);
+      showToast('Testimonial added', 'success');
+    } catch (err) { showToast(err.message, 'error'); }
+  }
+
+  async function deleteTestimonial(id) {
+    if (!confirmAction('Remove this testimonial?')) return;
+    try {
+      const data = await api('/admin/site-content/testimonials/' + id, { method: 'DELETE' });
+      renderCmsTestimonials(data.testimonials);
+      showToast('Testimonial removed', 'success');
+    } catch (err) { showToast(err.message, 'error'); }
+  }
+
+  function renderCmsGallery(images) {
+    document.getElementById('cms-gallery-list').innerHTML = images.map(img => `
+      <div style="position:relative;width:100px;height:100px;border-radius:8px;overflow:hidden;">
+        <img src="${img.url}" alt="${img.caption || ''}" style="width:100%;height:100%;object-fit:cover;">
+        <button onclick="deleteGalleryImage('${img._id}')" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:50%;width:22px;height:22px;cursor:pointer;font-size:.7rem;">&times;</button>
+      </div>
+    `).join('') || '<p class="text-muted">No images yet.</p>';
+  }
+
+  async function addGalleryImage() {
+    const url = document.getElementById('cms-gallery-url').value;
+    const caption = document.getElementById('cms-gallery-caption').value;
+    if (!url) { showToast('Enter an image URL', 'error'); return; }
+    try {
+      const data = await api('/admin/site-content/gallery', { method: 'POST', body: { url, caption }});
+      renderCmsGallery(data.gallery);
+      document.getElementById('cms-gallery-url').value = '';
+      document.getElementById('cms-gallery-caption').value = '';
+      showToast('Image added', 'success');
+    } catch (err) { showToast(err.message, 'error'); }
+  }
+
+  async function deleteGalleryImage(id) {
+    try {
+      const data = await api('/admin/site-content/gallery/' + id, { method: 'DELETE' });
+      renderCmsGallery(data.gallery);
+      showToast('Image removed', 'success');
+    } catch (err) { showToast(err.message, 'error'); }
+  }
+
+  // ══════════════════════════════════════════════
+  // Admin Messaging
+  // ══════════════════════════════════════════════
+  function openMsgModal(userId, userName) {
+    document.getElementById('msg-user-id').value = userId;
+    document.getElementById('msg-recipient-label').textContent = 'To: ' + userName;
+    document.getElementById('msg-title').value = '';
+    document.getElementById('msg-body').value = '';
+    document.getElementById('msg-send-sms').checked = false;
+    document.getElementById('msg-modal-overlay').classList.add('active');
+  }
+
+  function closeMsgModal() {
+    document.getElementById('msg-modal-overlay').classList.remove('active');
+  }
+
+  async function sendAdminMessage() {
+    const userId = document.getElementById('msg-user-id').value;
+    const title = document.getElementById('msg-title').value;
+    const message = document.getElementById('msg-body').value;
+    const sendSms = document.getElementById('msg-send-sms').checked;
+
+    if (!title || !message) { showToast('Title and message are required', 'error'); return; }
+
+    try {
+      await api('/admin/messages/send', { method: 'POST', body: { userId, title, message, sendSms } });
+      showToast('Message sent successfully', 'success');
+      closeMsgModal();
+    } catch (err) { showToast(err.message, 'error'); }
+  }
+</script>
+</body>
+</html>

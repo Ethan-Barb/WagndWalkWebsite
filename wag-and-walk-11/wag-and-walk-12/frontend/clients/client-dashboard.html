@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — Wag & Walk</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<button class="sidebar-toggle" onclick="toggleSidebar()">Menu</button>
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+<div class="dash-layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="dash-main">
+    <div class="dash-header">
+      <div><h1 id="greeting">Dashboard</h1><p class="welcome" id="welcome-text">Manage your dogs, walks, and payments.</p></div>
+    </div>
+
+    <!-- Quick actions -->
+    <div class="quick-actions" id="quick-actions">
+      <div class="quick-action" onclick="location.hash='book'"><div class="quick-action-icon">+</div>Book Walk</div>
+      <div class="quick-action" onclick="location.hash='dogs'"><div class="quick-action-icon">D</div>My Dogs</div>
+      <div class="quick-action" onclick="location.hash='payments'"><div class="quick-action-icon">$</div>Payments</div>
+    </div>
+
+    <!-- Overview -->
+    <div id="section-overview">
+      <div class="stat-cards" id="stat-cards"></div>
+      <div class="grid-2">
+        <div class="card"><div class="card-header"><h3>Upcoming walks</h3></div><div class="card-body" id="upcoming-bookings"><div class="spinner"></div></div></div>
+        <div class="card"><div class="card-header"><h3>Recent walks</h3><a href="#book" class="btn btn-sm btn-accent">Book again</a></div><div class="card-body" id="recent-bookings"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+
+    <!-- Dogs -->
+    <div id="section-dogs" style="display:none">
+      <div class="flex-between mb-3"><h2>My Dogs</h2><button class="btn btn-accent btn-sm" onclick="showAddDogForm()">+ Add Dog</button></div>
+      <div id="add-dog-form" style="display:none" class="card">
+        <div class="card-header"><h3 id="dog-form-title">Add a Dog</h3></div>
+        <div class="card-body">
+          <input type="hidden" id="edit-dog-id">
+          <div class="form-row"><div class="form-group"><label>Name</label><input id="dog-name" required></div><div class="form-group"><label>Breed</label><input id="dog-breed"></div></div>
+          <div class="form-row"><div class="form-group"><label>Size</label><select id="dog-size"><option value="">Select</option><option value="small">Small</option><option value="medium">Medium</option><option value="large">Large</option><option value="xlarge">X-Large</option></select></div><div class="form-group"><label>Age</label><input type="number" id="dog-age" min="0"></div></div>
+          <div class="form-row"><div class="form-group"><label>Weight (lbs)</label><input type="number" id="dog-weight" min="0"></div><div class="form-group"><label>Gender</label><select id="dog-gender"><option value="">Select</option><option value="male">Male</option><option value="female">Female</option></select></div></div>
+          <div class="form-group"><label>Special Instructions</label><textarea id="dog-instructions" placeholder="Anything the walker should know..."></textarea></div>
+          <div class="form-group"><label>Medical Conditions</label><input id="dog-medical" placeholder="Allergies, medications..."></div>
+          <div class="flex gap-1"><button class="btn btn-primary btn-sm" onclick="saveDog()">Save</button><button class="btn btn-secondary btn-sm" onclick="hideAddDogForm()">Cancel</button></div>
+        </div>
+      </div>
+      <div class="dog-grid" id="dog-list"><div class="spinner"></div></div>
+    </div>
+
+    <!-- Book a Walk — stepper -->
+    <div id="section-book" style="display:none">
+      <h2 class="mb-3">Book a Walk</h2>
+      <div class="booking-stepper">
+        <div class="step-indicator active" data-step="0" onclick="goBookingStep(0)">Select dogs</div>
+        <div class="step-indicator" data-step="1" onclick="goBookingStep(1)">Pick date</div>
+        <div class="step-indicator" data-step="2" onclick="goBookingStep(2)">Choose time</div>
+        <div class="step-indicator" data-step="3" onclick="goBookingStep(3)">Pick walker</div>
+        <div class="step-indicator" data-step="4" onclick="goBookingStep(4)">Confirm</div>
+      </div>
+
+      <div class="step-content active" id="bstep-0">
+        <div class="card"><div class="card-header"><h3>Which dogs are going?</h3></div><div class="card-body" id="booking-dog-select"><div class="spinner"></div></div></div>
+        <button class="btn btn-primary" onclick="goBookingStep(1)">Continue</button>
+      </div>
+      <div class="step-content" id="bstep-1">
+        <div class="card"><div class="card-header"><h3>Pick a date</h3></div><div class="card-body"><div id="booking-calendar"></div></div></div>
+        <div class="flex gap-1"><button class="btn btn-secondary" onclick="goBookingStep(0)">Back</button><button class="btn btn-primary" onclick="goBookingStep(2)">Continue</button></div>
+      </div>
+      <div class="step-content" id="bstep-2">
+        <div class="card"><div class="card-header"><h3>Choose a time</h3></div><div class="card-body" id="time-slots"><p class="text-muted">Select a date first.</p></div></div>
+        <div class="flex gap-1"><button class="btn btn-secondary" onclick="goBookingStep(1)">Back</button><button class="btn btn-primary" onclick="goBookingStep(3)">Continue</button></div>
+      </div>
+      <div class="step-content" id="bstep-3">
+        <div class="card"><div class="card-header"><h3>Pick a walker (optional)</h3><span class="text-sm text-muted">or skip to book any available</span></div><div class="card-body" id="walker-select"><div class="spinner"></div></div></div>
+        <div class="flex gap-1"><button class="btn btn-secondary" onclick="goBookingStep(2)">Back</button><button class="btn btn-primary" onclick="goBookingStep(4)">Continue</button></div>
+      </div>
+      <div class="step-content" id="bstep-4">
+        <div class="card"><div class="card-body" style="text-align:center;padding:32px;">
+          <h3 style="margin-bottom:8px;">Confirm your booking</h3>
+          <p class="text-muted mb-3" id="booking-summary">Select your options above to see a summary.</p>
+          <button class="btn btn-accent btn-lg" id="book-btn" onclick="doBooking()">Book & Pay</button>
+          <p class="text-xs text-muted mt-2">You'll be redirected to Stripe's secure checkout.</p>
+        </div></div>
+        <button class="btn btn-secondary" onclick="goBookingStep(3)">Back</button>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div id="section-messages" style="display:none">
+      <h2 class="mb-3">Messages</h2>
+      <div id="messages-container"><div class="spinner"></div></div>
+    </div>
+
+    <!-- Payments -->
+    <div id="section-payments" style="display:none">
+      <h2 class="mb-3">Payment History</h2>
+      <div class="card"><div class="card-body table-wrap" id="payment-history"><div class="spinner"></div></div></div>
+    </div>
+  </main>
+</div>
+
+<script src="/js/auth.js"></script>
+<script src="/js/booking.js"></script>
+<script src="/js/tips.js"></script>
+<script src="/js/payments.js"></script>
+<script src="/js/dashboard.js"></script>
+<script src="/js/messages.js"></script>
+<script>
+if (!requireAuth(['client'])) throw 'redirect';
+const user = getUser();
+renderDashNav('sidebar');
+initSectionRouter(['overview','dogs','book','messages','payments']);
+initAnimations();
+
+// Load messages when tab is opened
+window.addEventListener('hashchange', () => {
+  if (location.hash === '#messages') loadMessagesSection('messages-container', false);
+});
+
+document.getElementById('greeting').textContent = 'Hi, ' + user.firstName;
+
+// Booking stepper
+let currentBookingStep = 0;
+function goBookingStep(n) {
+  currentBookingStep = n;
+  document.querySelectorAll('.step-indicator').forEach((el, i) => { el.classList.toggle('active', i === n); el.classList.toggle('done', i < n); });
+  document.querySelectorAll('.step-content').forEach((el, i) => { el.classList.toggle('active', i === n); });
+  updateBookingSummary();
+}
+function updateBookingSummary() {
+  const dogs = document.querySelectorAll('.booking-dog-cb:checked').length;
+  const price = 2000 + Math.max(0, dogs - 1) * 500;
+  const parts = [];
+  if (dogs) parts.push(dogs + ' dog' + (dogs > 1 ? 's' : ''));
+  if (selectedDate) parts.push(new Date(selectedDate + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+  if (selectedSlot) parts.push(formatTime(selectedSlot));
+  document.getElementById('booking-summary').textContent = parts.length ? parts.join(' · ') + ' · ' + formatCents(price) : 'Select your options above.';
+  document.getElementById('book-btn').textContent = 'Book & Pay — ' + formatCents(price);
+}
+
+loadDashboard(); loadDogs(); loadBookingDogSelect(); initCalendar('booking-calendar'); loadWalkers('walker-select'); loadPaymentHistory();
+
+async function loadDashboard() {
+  try {
+    const data = await api('/clients/dashboard');
+    const d = data.dogs || [], up = data.upcomingBookings || [], rec = data.recentBookings || [];
+    document.getElementById('stat-cards').innerHTML =
+      '<div class="stat-card"><div class="label">My Dogs</div><div class="value">' + d.length + '</div></div>' +
+      '<div class="stat-card"><div class="label">Upcoming</div><div class="value">' + up.length + '</div></div>' +
+      '<div class="stat-card"><div class="label">Completed</div><div class="value">' + rec.length + '</div></div>';
+    renderBookings('upcoming-bookings', up, 'upcoming');
+    renderBookings('recent-bookings', rec, 'recent');
+  } catch (err) { showToast(err.message, 'error'); }
+}
+
+function renderBookings(id, bookings, type) {
+  const el = document.getElementById(id);
+  if (!bookings.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">?</div><h3>No ' + type + ' walks</h3><p>' + (type === 'upcoming' ? 'Book your first walk to get started.' : 'Complete a walk to see it here.') + '</p>' + (type === 'upcoming' ? '<a href="#book" class="btn btn-accent btn-sm">Book a Walk</a>' : '') + '</div>';
+    return;
+  }
+  el.innerHTML = bookings.map(b => {
+    const w = b.walker ? b.walker.firstName + ' ' + b.walker.lastName : 'Any available';
+    const dogs = (b.dogs || []).map(d => d.name).join(', ');
+    const canTip = type === 'recent' && !b.tipAmount;
+    const canReview = type === 'recent' && !b.review?.rating;
+    return '<div class="booking-card"><div><div class="booking-card-header"><h4>' + (dogs || 'Walk') + '</h4>' + statusBadge(b.status) + '</div><div class="booking-meta"><span>' + formatDate(b.scheduledDate) + '</span><span>' + formatTime(b.startTime) + '</span><span>' + w + '</span><span>' + formatCents(b.totalPrice) + '</span></div>' +
+    (b.review?.rating ? '<div class="mt-1 text-sm"><span class="review-stars">' + starRating(b.review.rating) + '</span> ' + (b.review.comment || '') + '</div>' : '') +
+    '</div><div class="booking-actions">' +
+    (b.walker ? '<button class="btn btn-sm btn-ghost" onclick="startConversation(\'' + (b.walker._id || '') + '\',\'' + w + '\')">Message</button>' : '') +
+    (canTip ? '<button class="btn btn-sm btn-secondary" onclick="openTipModal(\'' + b._id + '\',\'' + w + '\')">Tip</button>' : '') +
+    (canReview ? '<button class="btn btn-sm btn-secondary" onclick="openReviewModal(\'' + b._id + '\',\'' + w + '\')">Review</button>' : '') +
+    (b.status === 'pending' ? '<button class="btn btn-sm btn-ghost" style="color:var(--danger)" onclick="cancelBooking(\'' + b._id + '\')">Cancel</button>' : '') +
+    '</div></div>';
+  }).join('');
+}
+
+async function cancelBooking(id) { if (!confirmAction('Cancel this booking?')) return; try { await api('/bookings/' + id + '/cancel', { method: 'PATCH', body: { reason: 'Client cancelled' } }); showToast('Booking cancelled', 'success'); loadDashboard(); } catch (e) { showToast(e.message, 'error'); } }
+
+// Dogs
+let allDogs = [];
+async function loadDogs() { try { const d = await api('/clients/dogs'); allDogs = d.dogs || []; renderDogList(); } catch (e) { showToast(e.message, 'error'); } }
+function renderDogList() {
+  const el = document.getElementById('dog-list');
+  if (!allDogs.length) { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">?</div><h3>No dogs yet</h3><p>Add your first pup to get started.</p><button class="btn btn-accent btn-sm" onclick="showAddDogForm()">+ Add Dog</button></div>'; return; }
+  el.innerHTML = allDogs.map(d => '<div class="dog-card"><h4>' + d.name + '</h4><div class="dog-info">' + (d.breed || 'Mixed') + ' · ' + d.size + (d.age ? ' · ' + d.age + ' yrs' : '') + (d.weight ? ' · ' + d.weight + ' lbs' : '') + '</div>' + (d.specialInstructions ? '<div class="text-xs text-muted mt-1">' + d.specialInstructions + '</div>' : '') + '<div class="dog-actions"><button class="btn btn-ghost btn-sm" onclick=\'editDog(' + JSON.stringify(d) + ')\'>Edit</button><button class="btn btn-ghost btn-sm" style="color:var(--danger)" onclick="deleteDog(\'' + d._id + '\')">Remove</button></div></div>').join('');
+}
+
+function showAddDogForm() { document.getElementById('add-dog-form').style.display = 'block'; document.getElementById('dog-form-title').textContent = 'Add a Dog'; document.getElementById('edit-dog-id').value = ''; ['dog-name','dog-breed','dog-size','dog-age','dog-weight','dog-gender','dog-instructions','dog-medical'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; }); }
+function hideAddDogForm() { document.getElementById('add-dog-form').style.display = 'none'; }
+function editDog(d) { showAddDogForm(); document.getElementById('dog-form-title').textContent = 'Edit Dog'; document.getElementById('edit-dog-id').value = d._id; document.getElementById('dog-name').value = d.name || ''; document.getElementById('dog-breed').value = d.breed || ''; document.getElementById('dog-size').value = d.size || ''; document.getElementById('dog-age').value = d.age || ''; document.getElementById('dog-weight').value = d.weight || ''; document.getElementById('dog-gender').value = d.gender || ''; document.getElementById('dog-instructions').value = d.specialInstructions || ''; document.getElementById('dog-medical').value = d.medicalConditions || ''; }
+async function saveDog() {
+  const body = { name: document.getElementById('dog-name').value, breed: document.getElementById('dog-breed').value, size: document.getElementById('dog-size').value, age: parseInt(document.getElementById('dog-age').value) || undefined, weight: parseInt(document.getElementById('dog-weight').value) || undefined, gender: document.getElementById('dog-gender').value || undefined, specialInstructions: document.getElementById('dog-instructions').value, medicalConditions: document.getElementById('dog-medical').value };
+  if (!body.name || !body.size) { showToast('Name and size are required', 'error'); return; }
+  const editId = document.getElementById('edit-dog-id').value;
+  try { if (editId) { await api('/clients/dogs/' + editId, { method: 'PATCH', body }); } else { await api('/clients/dogs', { method: 'POST', body }); } hideAddDogForm(); loadDogs(); loadBookingDogSelect(); showToast(editId ? 'Dog updated' : 'Dog added', 'success'); } catch (e) { showToast(e.message, 'error'); }
+}
+async function deleteDog(id) { if (!confirmAction('Remove this dog?')) return; try { await api('/clients/dogs/' + id, { method: 'DELETE' }); showToast('Dog removed', 'success'); loadDogs(); loadBookingDogSelect(); } catch (e) { showToast(e.message, 'error'); } }
+
+// Booking dog select
+async function loadBookingDogSelect() {
+  const el = document.getElementById('booking-dog-select');
+  try { const d = await api('/clients/dogs'); const dogs = d.dogs || []; if (!dogs.length) { el.innerHTML = '<p class="text-muted">Add a dog first. <a href="#dogs">Go to My Dogs</a></p>'; return; }
+  el.innerHTML = dogs.map(d => '<label style="display:flex;align-items:center;gap:12px;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r-md);cursor:pointer;transition:all .2s;margin-bottom:6px;"><input type="checkbox" class="booking-dog-cb" value="' + d._id + '" checked style="width:16px;height:16px;accent-color:var(--accent);"><div><strong style="font-size:.85rem;">' + d.name + '</strong><span style="font-size:.75rem;color:var(--ink-muted);margin-left:8px;">' + (d.breed || 'Mixed') + ' · ' + d.size + '</span></div></label>').join('');
+  updateBookingSummary();
+  document.querySelectorAll('.booking-dog-cb').forEach(cb => cb.addEventListener('change', updateBookingSummary));
+  } catch (e) { el.innerHTML = '<p class="text-muted">Error loading dogs.</p>'; }
+}
+
+async function doBooking() {
+  const dogIds = [...document.querySelectorAll('.booking-dog-cb:checked')].map(cb => cb.value);
+  try { const booking = await submitBooking(dogIds); if (booking) { showToast('Redirecting to payment...', 'info'); await redirectToCheckout(booking._id); } } catch (e) {}
+}
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('payment') === 'success') { showToast('Payment successful! Your walk is booked.', 'success'); window.history.replaceState({}, '', '/dashboard/client'); }
+else if (urlParams.get('payment') === 'cancelled') { showToast('Payment cancelled. Try again from your bookings.', 'info'); window.history.replaceState({}, '', '/dashboard/client'); }
+
+// Payment history
+async function loadPaymentHistory() {
+  const el = document.getElementById('payment-history');
+  try { const d = await api('/clients/payment-history'); const p = d.payments || [];
+  if (!p.length) { el.innerHTML = '<div class="empty-state"><h3>No payments yet</h3></div>'; return; }
+  el.innerHTML = '<table><thead><tr><th>Date</th><th>Type</th><th>Amount</th><th>Status</th></tr></thead><tbody>' + p.map(p => '<tr><td>' + formatDate(p.createdAt) + '</td><td>' + (p.type === 'tip' ? 'Tip' : 'Walk') + '</td><td>' + formatCents(p.amount) + '</td><td>' + statusBadge(p.status) + '</td></tr>').join('') + '</tbody></table>';
+  } catch (e) { el.innerHTML = '<p class="text-muted">Error loading payments.</p>'; }
+}
+</script>
+</body>
+</html>
