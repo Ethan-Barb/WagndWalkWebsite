@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wag & Walk — Naperville's Dog Walking Service</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+<!-- Announcement Banner (CMS-controlled) -->
+<div class="announce-bar" id="announce-bar" style="display:none">
+  <span id="announce-text"></span>
+  <a href="#" id="announce-link" style="display:none"></a>
+</div>
+
+<nav class="nav" id="main-nav">
+  <div class="nav-inner">
+    <a href="/" class="logo">
+      <span class="logo-mark"><svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><g transform="translate(40,40)"><rect x="-14" y="-5" width="28" height="10" rx="3" fill="currentColor"/><circle cx="-14" cy="-5" r="5.5" fill="currentColor"/><circle cx="-14" cy="5" r="5.5" fill="currentColor"/><circle cx="14" cy="-5" r="5.5" fill="currentColor"/><circle cx="14" cy="5" r="5.5" fill="currentColor"/></g></svg></span>
+      Wag & Walk
+    </a>
+    <div class="nav-links" id="nav-links">
+      <a href="/walkers">Find Walkers</a>
+      <a href="/login">Log In</a>
+      <a href="/register" class="nav-cta">Get Started</a>
+    </div>
+    <button class="nav-toggle" onclick="document.getElementById('nav-links').classList.toggle('open')" aria-label="Menu">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero" id="hero-section">
+  <div class="hero-image" id="hero-image" style="background-image:url('https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=1400&q=80')"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">Serving Naperville, Illinois</div>
+    <h1 id="hero-headline">Your dog deserves <em>the best walk</em> in the neighborhood.</h1>
+    <p class="hero-sub" id="hero-sub">Connect with trusted local walkers who love dogs as much as you do.</p>
+    <div class="hero-actions">
+      <a href="/register?role=client" class="btn btn-primary" id="hero-cta-1">Book a Walk</a>
+      <a href="/register?role=walker" class="btn btn-secondary" id="hero-cta-2">Become a Walker</a>
+    </div>
+    <div class="hero-stats">
+      <div><span class="hero-stat-value" id="stat-walkers">50+</span><span class="hero-stat-label">Active Walkers</span></div>
+      <div><span class="hero-stat-value" id="stat-walks">500+</span><span class="hero-stat-label">Walks Completed</span></div>
+      <div><span class="hero-stat-value" id="stat-rating">4.9</span><span class="hero-stat-label">Average Rating</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- How It Works -->
+<section class="section bg-white">
+  <div class="section-inner">
+    <div class="section-eyebrow reveal">How it works</div>
+    <h2 class="section-title reveal reveal-delay-1">Simple as a walk in the park</h2>
+    <p class="section-desc reveal reveal-delay-2">Four easy steps to get your dog walking with a trusted local walker.</p>
+    <div class="steps-grid">
+      <div class="step-card reveal reveal-delay-1"><div class="step-number">01</div><h3>Create your profile</h3><p>Add your dog's info, address, and any special notes. Takes about 2 minutes.</p></div>
+      <div class="step-card reveal reveal-delay-2"><div class="step-number">02</div><h3>Browse local walkers</h3><p>See available walkers in Naperville, read their reviews, and pick your match.</p></div>
+      <div class="step-card reveal reveal-delay-3"><div class="step-number">03</div><h3>Book and pay securely</h3><p>Choose your time, pay via Stripe. Funds are held until the walk is completed.</p></div>
+      <div class="step-card reveal reveal-delay-4"><div class="step-number">04</div><h3>Enjoy peace of mind</h3><p>Your walker arrives on time. Your pup gets a great walk. Rate and tip after.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- Featured Walkers -->
+<section class="section bg-warm">
+  <div class="section-inner">
+    <div class="section-eyebrow reveal">Meet our walkers</div>
+    <h2 class="section-title reveal reveal-delay-1">Naperville's most trusted</h2>
+    <p class="section-desc reveal reveal-delay-2">Our walkers are community members who genuinely love dogs.</p>
+    <div class="walker-grid" id="featured-walkers"></div>
+    <div class="text-center mt-4 reveal"><a href="/walkers" class="btn btn-secondary">View All Walkers</a></div>
+  </div>
+</section>
+
+<!-- Pricing -->
+<section class="section bg-white">
+  <div class="section-inner">
+    <div class="section-eyebrow reveal">Pricing</div>
+    <h2 class="section-title reveal reveal-delay-1" id="pricing-heading">Simple, transparent pricing</h2>
+    <p class="section-desc reveal reveal-delay-2" id="pricing-subheading">No hidden fees. Pay per walk.</p>
+    <div class="pricing-grid" id="pricing-grid"></div>
+    <p class="pricing-note reveal" id="pricing-note">+$5 per additional dog · Tips optional · Payments secured by Stripe</p>
+  </div>
+</section>
+
+<!-- Testimonials -->
+<section class="section bg-warm">
+  <div class="section-inner">
+    <div class="section-eyebrow reveal">What clients say</div>
+    <h2 class="section-title reveal reveal-delay-1">Loved by dog owners across Naperville</h2>
+    <div class="testimonial-grid mt-4" id="testimonial-grid"></div>
+  </div>
+</section>
+
+<!-- Gallery -->
+<section class="section-sm bg-white" id="gallery-section" style="display:none">
+  <div class="section-inner">
+    <div class="section-eyebrow reveal text-center">Gallery</div>
+    <h2 class="section-title reveal reveal-delay-1 text-center" style="max-width:none;">Happy pups, happy walks</h2>
+    <div class="gallery-grid mt-4" id="gallery-grid"></div>
+  </div>
+</section>
+
+<!-- Walker CTA -->
+<section class="cta-section">
+  <div class="cta-inner reveal">
+    <h2>Earn money doing something you love</h2>
+    <p>Set your own hours, build your client base, and get paid to spend time with dogs. Keep 80% of every booking plus 100% of tips.</p>
+    <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
+      <a href="/register?role=walker" class="btn btn-accent">Start Walking Today</a>
+      <a href="/walkers" class="btn btn-secondary" style="border-color:rgba(255,255,255,.3);color:#fff;">Learn More</a>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <a href="/" class="logo"><span class="logo-mark"><svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><g transform="translate(40,40)"><rect x="-14" y="-5" width="28" height="10" rx="3" fill="currentColor"/><circle cx="-14" cy="-5" r="5.5" fill="currentColor"/><circle cx="-14" cy="5" r="5.5" fill="currentColor"/><circle cx="14" cy="-5" r="5.5" fill="currentColor"/><circle cx="14" cy="5" r="5.5" fill="currentColor"/></g></svg></span> Wag & Walk</a>
+      <p>Naperville's trusted dog walking community. Connecting owners with local walkers since 2025.</p>
+    </div>
+    <div class="footer-col"><h4>Platform</h4><a href="/register?role=client">Book a Walk</a><a href="/register?role=walker">Become a Walker</a><a href="/walkers">Browse Walkers</a></div>
+    <div class="footer-col"><h4>Account</h4><a href="/login">Log In</a><a href="/register">Sign Up</a></div>
+    <div class="footer-col"><h4>Service Area</h4><p style="font-size:.82rem;">Proudly serving Naperville, IL and surrounding neighborhoods including Bolingbrook, Lisle, and Aurora.</p></div>
+  </div>
+  <div class="footer-bottom"><p>&copy; 2025 Wag & Walk. All rights reserved. Naperville, Illinois.</p></div>
+</footer>
+
+<script src="/js/auth.js"></script>
+<script>
+initAnimations();
+const obs = initScrollReveal();
+
+const walkerPhotos = [
+  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&q=80',
+  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80',
+  'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&q=80',
+];
+
+async function loadSite() {
+  try {
+    const res = await fetch('/api/site-content');
+    const { content: c } = await res.json();
+    if (!c) { fallback(); return; }
+    if (c.announcement?.isVisible && c.announcement.text) {
+      document.getElementById('announce-bar').style.display = 'block';
+      if (c.announcement.bgColor) document.getElementById('announce-bar').style.background = c.announcement.bgColor;
+      document.getElementById('announce-text').textContent = c.announcement.text;
+      if (c.announcement.linkUrl) { const a = document.getElementById('announce-link'); a.style.display = 'inline'; a.href = c.announcement.linkUrl; a.textContent = c.announcement.linkText || 'Learn more'; }
+    }
+    if (c.hero) {
+      if (c.hero.imageUrl) document.getElementById('hero-image').style.backgroundImage = "url('" + c.hero.imageUrl + "')";
+      if (c.hero.headline) document.getElementById('hero-headline').innerHTML = c.hero.headline;
+      if (c.hero.subheadline) document.getElementById('hero-sub').textContent = c.hero.subheadline;
+      if (c.hero.ctaPrimary) document.getElementById('hero-cta-1').textContent = c.hero.ctaPrimary;
+      if (c.hero.ctaSecondary) document.getElementById('hero-cta-2').textContent = c.hero.ctaSecondary;
+    }
+    if (c.stats) {
+      const sw = document.getElementById('stat-walkers');
+      const swk = document.getElementById('stat-walks');
+      sw.dataset.target = c.stats.activeWalkers || 50; sw.dataset.suffix = '+'; sw.className = 'hero-stat-value counter';
+      swk.dataset.target = c.stats.walksCompleted || 500; swk.dataset.suffix = '+'; swk.className = 'hero-stat-value counter';
+      document.getElementById('stat-rating').textContent = c.stats.averageRating;
+      // Trigger counters when hero stats become visible
+      const counterObs = new IntersectionObserver(entries => {
+        entries.forEach(e => { if (e.isIntersecting) { animateCounters(); counterObs.disconnect(); } });
+      }, { threshold: 0.5 });
+      const heroStats = document.querySelector('.hero-stats');
+      if (heroStats) counterObs.observe(heroStats);
+    }
+    // Pass raw array — null means "not configured", empty array means "admin cleared it"
+    renderWalkers(c.featuredWalkers);
+    renderPricing(c.pricing?.tiers || [], c.pricing?.addOnPrice || 500);
+    if (c.pricing?.heading) document.getElementById('pricing-heading').textContent = c.pricing.heading;
+    if (c.pricing?.subheading) document.getElementById('pricing-subheading').textContent = c.pricing.subheading;
+    renderTestimonials(c.testimonials || []);
+    if (c.gallery?.length) renderGallery(c.gallery);
+    document.querySelectorAll('.reveal:not(.visible),.reveal-scale:not(.visible)').forEach(el => obs.observe(el));
+  } catch (e) { fallback(); }
+}
+
+function renderWalkers(walkers) {
+  const el = document.getElementById('featured-walkers');
+  const section = el.closest('.section');
+
+  // null/undefined = CMS never configured, show fallback
+  // empty array = admin intentionally cleared, hide section
+  // populated array = show selected walkers
+  if (Array.isArray(walkers) && walkers.length === 0) {
+    // Admin cleared featured walkers — hide the section
+    if (section) section.style.display = 'none';
+    return;
+  }
+  if (section) section.style.display = '';
+
+  const list = (walkers && walkers.length) ? walkers.map((w, i) => ({
+    name: w.firstName + ' ' + w.lastName,
+    rating: w.walkerProfile?.averageRating || 0,
+    walks: w.walkerProfile?.totalWalks || 0,
+    bio: w.walkerProfile?.bio || '',
+    photo: w.profilePhoto || walkerPhotos[i % 3]
+  })) : [
+    { name: 'Emma Johnson', rating: 4.9, walks: 42, bio: 'Lifelong dog lover. Pet CPR certified. All breeds welcome.', photo: walkerPhotos[0] },
+    { name: 'Marcus Rivera', rating: 4.7, walks: 18, bio: 'High school junior, great with high-energy and large breeds.', photo: walkerPhotos[1] },
+    { name: 'Sophia Chen', rating: 5.0, walks: 11, bio: 'Pre-vet student specializing in small dogs and seniors.', photo: walkerPhotos[2] },
+  ];
+  el.innerHTML = list.map(w => '<div class="walker-card reveal-scale"><img class="walker-card-img" src="' + w.photo + '" alt="' + w.name + '" loading="lazy"><div class="walker-card-body"><h3>' + w.name + '</h3><div class="walker-rating">' + w.rating.toFixed(1) + ' rating · ' + w.walks + ' walks</div><p class="walker-bio">' + w.bio + '</p><a href="/register?role=client" class="btn btn-sm btn-primary" style="width:100%">Book ' + w.name.split(' ')[0] + '</a></div></div>').join('');
+}
+
+function renderPricing(tiers, addOn) {
+  if (!tiers.length) tiers = [{ name: '20-Minute Walk', price: 1000, description: 'Quick potty break for busy days.', isPopular: false, isVisible: true, order: 0 }, { name: '30-Minute Walk', price: 2000, description: 'A solid neighborhood stroll.', isPopular: true, isVisible: true, order: 1 }, { name: '60-Minute Walk', price: 4000, description: 'Full exploration for high-energy dogs.', isPopular: false, isVisible: true, order: 2 }];
+  const vis = tiers.filter(t => t.isVisible !== false).sort((a, b) => (a.order || 0) - (b.order || 0));
+  document.getElementById('pricing-grid').innerHTML = vis.map(t => '<a href="/register?role=client" class="pricing-card ' + (t.isPopular ? 'featured' : '') + ' reveal-scale" style="text-decoration:none;color:inherit;">' + (t.isPopular ? '<div class="pricing-popular">Most Popular</div>' : '') + '<h3>' + t.name + '</h3><div class="pricing-amount">$' + (t.price / 100) + '</div><p>' + t.description + '</p><span class="btn btn-sm btn-primary" style="width:100%">Book Now</span></a>').join('');
+  document.getElementById('pricing-note').textContent = '+$' + (addOn / 100) + ' per additional dog · Tips optional · Payments secured by Stripe';
+}
+
+function renderTestimonials(list) {
+  if (!list.length) list = [
+    { clientName: 'Sarah M.', dogName: 'Biscuit', text: 'Emma is absolutely wonderful. Biscuit adores her and I have complete peace of mind every time.', rating: 5, isVisible: true },
+    { clientName: 'David T.', dogName: 'Rex', text: 'Marcus is great with large breeds. Rex comes home tired and happy every single time.', rating: 5, isVisible: true },
+    { clientName: 'Jennifer L.', dogName: 'Mochi', text: 'Sophia has a gentle touch that works perfectly for our anxious little Mochi. Highly recommend.', rating: 5, isVisible: true },
+  ];
+  const vis = list.filter(t => t.isVisible !== false);
+  document.getElementById('testimonial-grid').innerHTML = vis.map(t => {
+    const ini = t.clientName.split(' ').map(w => w[0]).join('');
+    return '<div class="testimonial-card reveal"><div class="testimonial-stars">' + '★'.repeat(t.rating || 5) + '</div><p class="testimonial-text">"' + t.text + '"</p><div class="testimonial-author">' + (t.photoUrl ? '<img class="testimonial-avatar" src="' + t.photoUrl + '" alt="' + t.clientName + '">' : '<div class="testimonial-avatar">' + ini + '</div>') + '<div><div class="testimonial-name">' + t.clientName + '</div>' + (t.dogName ? '<div class="testimonial-dog">Owner of ' + t.dogName + '</div>' : '') + '</div></div></div>';
+  }).join('');
+}
+
+function renderGallery(images) {
+  const vis = images.filter(i => i.isVisible !== false).sort((a, b) => (a.order || 0) - (b.order || 0));
+  if (!vis.length) return;
+  document.getElementById('gallery-section').style.display = 'block';
+  document.getElementById('gallery-grid').innerHTML = vis.map(img => '<div class="gallery-item reveal-scale"><img src="' + img.url + '" alt="' + (img.altText || 'Dog walking') + '" loading="lazy"></div>').join('');
+}
+
+function fallback() { renderWalkers([]); renderPricing([], 500); renderTestimonials([]); }
+loadSite();
+</script>
+</body>
+</html>
