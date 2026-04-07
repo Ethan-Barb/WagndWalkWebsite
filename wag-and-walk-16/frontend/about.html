@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About Us — Wag & Walk</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <meta property="og:title" content="About Wag & Walk — Naperville Dog Walking">
+  <meta property="og:description" content="Learn about Naperville's trusted dog walking community.">
+  <meta property="og:type" content="website">
+</head>
+<body>
+<nav class="nav" id="main-nav">
+  <div class="nav-inner">
+    <a href="/" class="logo"><span class="logo-mark"><svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg"><g transform="translate(40,40)"><rect x="-14" y="-5" width="28" height="10" rx="3" fill="currentColor"/><circle cx="-14" cy="-5" r="5.5" fill="currentColor"/><circle cx="-14" cy="5" r="5.5" fill="currentColor"/><circle cx="14" cy="-5" r="5.5" fill="currentColor"/><circle cx="14" cy="5" r="5.5" fill="currentColor"/></g></svg></span> Wag & Walk</a>
+    <div class="nav-links" id="nav-links">
+      <a href="/walkers">Find Walkers</a>
+      <a href="/about" style="color:var(--ink);font-weight:600;">About</a>
+      <a href="/login">Log In</a>
+      <a href="/register" class="nav-cta">Get Started</a>
+    </div>
+    <button class="nav-toggle" onclick="document.getElementById('nav-links').classList.toggle('open')"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section style="position:relative;padding:100px 24px 80px;overflow:hidden;">
+  <div style="position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=1200&q=80') center/cover;filter:brightness(.5);"></div>
+  <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.3) 0%,rgba(0,0,0,.6) 100%);"></div>
+  <div class="container" style="position:relative;z-index:1;color:#fff;text-align:center;">
+    <h1 id="about-headline" style="font-size:clamp(2rem,4vw,3.2rem);margin-bottom:12px;animation:fadeUp .6s var(--ease) .1s both;">About Wag & Walk</h1>
+    <p style="font-size:1rem;color:rgba(255,255,255,.7);max-width:520px;margin:0 auto;animation:fadeUp .6s var(--ease) .2s both;">Naperville's trusted dog walking community.</p>
+  </div>
+</section>
+
+<!-- Story -->
+<section class="section bg-white">
+  <div class="container" style="max-width:760px;">
+    <div class="section-eyebrow reveal">Our story</div>
+    <h2 class="section-title reveal reveal-delay-1" id="about-story-title">How it started</h2>
+    <p class="reveal reveal-delay-2" id="about-story" style="font-size:.95rem;line-height:1.8;color:var(--ink-light);">
+      Wag & Walk was founded to connect Naperville dog owners with trusted local walkers. We believe every dog deserves a great walk and every walker deserves fair pay for their dedication.
+    </p>
+  </div>
+</section>
+
+<!-- Mission -->
+<section class="section bg-warm">
+  <div class="container" style="max-width:760px;">
+    <div class="section-eyebrow reveal">Our mission</div>
+    <h2 class="section-title reveal reveal-delay-1">What drives us</h2>
+    <p class="reveal reveal-delay-2" id="about-mission" style="font-size:.95rem;line-height:1.8;color:var(--ink-light);">
+      Our mission is to make dog walking accessible, safe, and enjoyable for everyone in the Naperville community.
+    </p>
+  </div>
+</section>
+
+<!-- Team -->
+<section class="section bg-white" id="team-section" style="display:none;">
+  <div class="container">
+    <div class="section-eyebrow reveal text-center">Our team</div>
+    <h2 class="section-title reveal reveal-delay-1 text-center" style="max-width:none;">The people behind Wag & Walk</h2>
+    <div class="walker-grid mt-4" id="team-grid"></div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="section bg-warm" id="faq-section" style="display:none;">
+  <div class="container" style="max-width:760px;">
+    <div class="section-eyebrow reveal text-center">FAQ</div>
+    <h2 class="section-title reveal reveal-delay-1 text-center" style="max-width:none;">Common questions</h2>
+    <div class="mt-4" id="faq-list"></div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="cta-inner reveal">
+    <h2>Ready to get started?</h2>
+    <p>Join hundreds of Naperville families who trust Wag & Walk.</p>
+    <div class="flex-center gap-2"><a href="/register?role=client" class="btn btn-accent btn-lg">Book a Walk</a><a href="/register?role=walker" class="btn btn-secondary btn-lg" style="border-color:rgba(255,255,255,.3);color:#fff;">Become a Walker</a></div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-bottom"><p>&copy; 2025 Wag & Walk. Naperville, Illinois.</p></div>
+</footer>
+
+<script src="/js/auth.js"></script>
+<script>
+initAnimations();
+
+async function loadAbout() {
+  try {
+    const res = await fetch('/api/about');
+    const { aboutUs: a } = await res.json();
+    if (!a) return;
+    if (a.headline) document.getElementById('about-headline').textContent = a.headline;
+    if (a.story) document.getElementById('about-story').textContent = a.story;
+    if (a.mission) document.getElementById('about-mission').textContent = a.mission;
+    if (a.imageUrl) document.querySelector('.hero-image, section[style*="background"]')?.style?.backgroundImage;
+
+    // Team
+    if (a.teamMembers?.length) {
+      document.getElementById('team-section').style.display = '';
+      document.getElementById('team-grid').innerHTML = a.teamMembers.map(m =>
+        '<div class="walker-card reveal-scale"><img class="walker-card-img" src="' + (m.photoUrl || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300&q=80') + '" alt="' + m.name + '" loading="lazy"><div class="walker-card-body"><h3>' + m.name + '</h3><div class="walker-rating">' + (m.role || '') + '</div><p class="walker-bio">' + (m.bio || '') + '</p></div></div>'
+      ).join('');
+    }
+
+    // FAQ
+    if (a.faq?.length) {
+      document.getElementById('faq-section').style.display = '';
+      document.getElementById('faq-list').innerHTML = a.faq.sort((a,b) => (a.order||0) - (b.order||0)).map(f =>
+        '<details class="reveal" style="border:1px solid var(--border);border-radius:var(--r-lg);margin-bottom:8px;background:var(--bg-card);"><summary style="padding:16px 20px;cursor:pointer;font-weight:600;font-size:.9rem;list-style:none;display:flex;justify-content:space-between;align-items:center;">' + f.question + '<span style="font-size:.8rem;color:var(--ink-muted);transition:transform .2s;">+</span></summary><div style="padding:0 20px 16px;font-size:.88rem;color:var(--ink-light);line-height:1.7;">' + f.answer + '</div></details>'
+      ).join('');
+    }
+
+    initScrollReveal();
+  } catch (e) { console.log('About content not loaded'); }
+}
+loadAbout();
+</script>
+</body>
+</html>
